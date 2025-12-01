@@ -5,11 +5,8 @@ project:
     - "*.qmd"
     - "*.md"
 
-# Mermaid configuration - use client-side rendering to avoid CI hangs
-mermaid:
-  theme: default
-  engine: mermaid
-  format: svg
+# Mermaid configuration - use SVG format for client-side rendering (no Chromium needed)
+mermaid-format: svg
 
 website:
   title: "WFP Jordan Data Quality Automation"
@@ -128,7 +125,4 @@ format:
     execute:
       echo: false
       eval: false
-
-mermaid:
-  theme: default
 
