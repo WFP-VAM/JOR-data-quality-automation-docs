@@ -16,5 +16,24 @@ Thumbs.db
 *.html
 !**/_includes/*.html
 
+# Secrets and credentials - NEVER commit these
+*.env
+*.env.local
+*_config.yaml
+*_config.yml
+data_bridges_api_config.yaml
+data_bridges_api_config.yml
+**/secrets/**
+**/credentials/**
+**/*secret*
+**/*credential*
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Node modules (if any)
+node_modules/
 
 /.quarto/
