@@ -4,6 +4,9 @@ project:
   render:
     - "*.qmd"
     - "*.md"
+  execute:
+    echo: false
+    eval: false
 
 # Enable mermaid diagrams globally
 mermaid-format: png
