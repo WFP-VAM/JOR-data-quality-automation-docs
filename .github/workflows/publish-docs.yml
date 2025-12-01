@@ -24,6 +24,9 @@ jobs:
         uses: quarto-dev/quarto-actions/render@v2
         with:
           path: .
+        env:
+          QUARTO_LOG_LEVEL: INFO
+          QUARTO_MERMAID_ENGINE: mermaid
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

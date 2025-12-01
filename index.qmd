@@ -90,6 +90,8 @@ Real-world walkthrough of implementing a complete exercise from start to finish.
 The application uses a **registry-based system** where exercises are automatically discovered and loaded from the `app/exercises/` directory.
 
 ```{mermaid}
+#| echo: false
+#| eval: false
 graph TB
     A[Main App<br/>app.r] --> B[Exercise Registry<br/>exercise_registry.r]
     B --> C[Exercise 1]

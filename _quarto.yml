@@ -7,7 +7,11 @@ project:
 
 # Enable mermaid diagrams globally
 # Using SVG instead of PNG for faster rendering
+# Disable mermaid rendering in CI to prevent hangs
 mermaid-format: svg
+mermaid:
+  theme: default
+  engine: mermaid
 
 website:
   title: "WFP Jordan Data Quality Automation"
