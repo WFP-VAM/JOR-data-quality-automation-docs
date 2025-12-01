@@ -4,9 +4,6 @@ project:
   render:
     - "*.qmd"
     - "*.md"
-  execute:
-    echo: false
-    eval: false
 
 # Enable mermaid diagrams globally
 mermaid-format: png
@@ -125,6 +122,9 @@ format:
     code-fold: false
     link-external-newwindow: true
     link-external-icon: true
+    execute:
+      echo: false
+      eval: false
 
 mermaid:
   theme: default
