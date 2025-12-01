@@ -1,0 +1,44 @@
+<script>
+// Make navbar and sidebar logos link to WFP website
+document.addEventListener('DOMContentLoaded', function() {
+  // Navbar logo
+  const navbarBrand = document.querySelector('.navbar-brand');
+  if (navbarBrand) {
+    navbarBrand.href = 'https://www.wfp.org/';
+    navbarBrand.target = '_blank';
+    navbarBrand.rel = 'noopener noreferrer';
+  }
+  
+  // Sidebar logo link (if it exists as a link)
+  const sidebarLogoLink = document.querySelector('.sidebar-logo-link');
+  if (sidebarLogoLink) {
+    sidebarLogoLink.href = 'https://www.wfp.org/';
+    sidebarLogoLink.target = '_blank';
+    sidebarLogoLink.rel = 'noopener noreferrer';
+  }
+  
+  // Sidebar logo container (if logo is in a container)
+  const sidebarLogo = document.querySelector('.sidebar-logo');
+  if (sidebarLogo) {
+    // Check if it contains an image that needs to be wrapped
+    const logoImg = sidebarLogo.querySelector('img');
+    if (logoImg && sidebarLogo.tagName !== 'A') {
+      // Wrap the sidebar logo in a link
+      const link = document.createElement('a');
+      link.href = 'https://www.wfp.org/';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.style.textDecoration = 'none';
+      link.style.display = 'inline-block';
+      sidebarLogo.parentNode.insertBefore(link, sidebarLogo);
+      link.appendChild(sidebarLogo);
+    } else if (sidebarLogo.tagName === 'A') {
+      // If it's already a link, update it
+      sidebarLogo.href = 'https://www.wfp.org/';
+      sidebarLogo.target = '_blank';
+      sidebarLogo.rel = 'noopener noreferrer';
+    }
+  }
+});
+</script>
+

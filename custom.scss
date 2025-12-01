@@ -1,0 +1,54 @@
+/*-- scss:defaults --*/
+
+// Brand colors are automatically provided by _brand.yml
+// No need to override - brand.yml creates CSS/Sass variables automatically
+// Colors are available as $brand-{name} (e.g., $brand-wfp-blue)
+
+// Typography
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$headings-font-weight: 600;
+
+// Spacing
+$grid-gutter-width: 1.5rem;
+
+/*-- scss:rules --*/
+
+// Enhance code blocks
+.code-with-filename {
+  margin-top: 1.5rem;
+}
+
+// Better callout styling
+.callout-note {
+  border-left-color: $info;
+}
+
+.callout-tip {
+  border-left-color: $success;
+}
+
+.callout-warning {
+  border-left-color: $warning;
+}
+
+.callout-important {
+  border-left-color: $danger;
+}
+
+// Navigation improvements
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sidebar {
+  border-right: 1px solid #dee2e6;
+}
+
+// Footer styling
+.page-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+  font-size: 0.9em;
+}
+

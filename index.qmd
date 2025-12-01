@@ -1,0 +1,231 @@
+---
+title: "WFP Jordan Data Quality Automation"
+subtitle: "Comprehensive documentation for the Data Quality and Overview Application"
+---
+
+## Welcome! 👋
+
+This documentation site provides everything you need to work with the WFP Data Quality and Overview Application for Jordan. Whether you're adding new exercises, exploring survey data, or understanding the system architecture, you'll find comprehensive guides and examples here.
+
+## 🚀 Quick Navigation
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+### [Quick Start Guide](guides/QUICK_START.html)
+Add a new exercise in ~20 minutes with ready-to-use templates and copy-paste code.
+
+**Best for**: Moving quickly, following a proven recipe
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [Interactive Discovery](guides/INTERACTIVE_DISCOVERY.html)
+Learn how to find and explore surveys using the interactive discovery tools.
+
+**Best for**: Understanding the discovery process, hands-on learning
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html)
+Complete reference guide covering all aspects of exercise creation, validation, and visualization.
+
+**Best for**: Comprehensive information, troubleshooting, advanced topics
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [BCM Welcome Meals Example](examples/BCM_WELCOME_MEALS.html)
+Real-world walkthrough of implementing a complete exercise from start to finish.
+
+**Best for**: Learning by example, seeing actual implementation decisions
+:::
+
+:::
+
+---
+
+## 🎯 Choose Your Path
+
+### I want to add an exercise quickly
+**→ Start with [Quick Start Guide](guides/QUICK_START.html)**
+
+1. Run `tools/discover_surveys.r` to find your survey
+2. Copy the template
+3. Fill in details
+4. Test in app
+
+**Time**: ~20 minutes
+
+### I want to learn the discovery process
+**→ Read [Interactive Discovery Guide](guides/INTERACTIVE_DISCOVERY.html)**
+
+1. Understand survey discovery
+2. Learn exploration techniques  
+3. Follow step-by-step tutorial
+
+**Time**: ~30 minutes
+
+### I need complete reference information
+**→ See [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html)**
+
+- Complete exercise structure
+- All validation rules
+- All UI components
+- Troubleshooting guide
+
+**Time**: Reference as needed
+
+### I want to see a real example
+**→ Study [BCM Welcome Meals Example](examples/BCM_WELCOME_MEALS.html)**
+
+- See actual implementation
+- Understand decisions made
+- Learn patterns
+
+**Time**: ~15 minutes
+
+---
+
+## 🏗️ Application Architecture
+
+The application uses a **registry-based system** where exercises are automatically discovered and loaded from the `app/exercises/` directory.
+
+```{mermaid}
+graph TB
+    A[Main App<br/>app.r] --> B[Exercise Registry<br/>exercise_registry.r]
+    B --> C[Exercise 1]
+    B --> D[Exercise 2]
+    B --> E[Exercise N]
+    C --> F[Reusable Components]
+    D --> F
+    E --> F
+    F --> G[Validation Rules]
+    F --> H[UI Components]
+    F --> I[Helper Functions]
+```
+
+### Core Components
+
+#### Exercise Files (`app/exercises/*.r`)
+Each exercise is self-contained with metadata, data fetching, validation rules, and visualizations.
+
+#### Validation Rules (`app/R/validation_rules.r`)
+Reusable validation functions including duration checks, submission validations, and data quality rules.
+
+#### Visualization Helpers (`app/R/visualization_helpers.r`)
+Pre-built UI components for metrics, breakdowns, and dashboards.
+
+---
+
+## 🔍 Key Features
+
+### 1. Automatic Exercise Discovery
+- Place file in `app/exercises/`
+- App automatically detects and loads it
+- No manual registration needed
+
+### 2. Interactive Survey Discovery
+- **Tool**: `tools/discover_surveys.r`
+- Search surveys by keyword
+- Inspect data structure automatically
+- See [Interactive Discovery Guide](guides/INTERACTIVE_DISCOVERY.html)
+
+### 3. Reusable Components
+- Pre-built validation rules
+- Consistent UI patterns
+- Easy to extend
+
+### 4. Real-time Validation
+- Multiple validation rules per exercise
+- Clear pass/fail indicators
+- Detailed error information
+
+### 5. Custom Dashboards
+- Exercise-specific visualizations
+- Monitoring metrics
+- Responsive layouts
+
+---
+
+## 📚 Documentation Sections
+
+### User Guides
+Comprehensive guides for adding exercises, working with metadata, and understanding validation coverage.
+
+- [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html) - Complete reference
+- [Adding Metadata](guides/ADDING_METADATA.html) - XLSForm integration
+- [Validation Coverage](VALIDATION_COVERAGE.html) - Implementation status
+
+### Examples
+Real-world examples showing complete implementations:
+
+- [BCM Welcome Meals](examples/BCM_WELCOME_MEALS.html)
+- [BCM Helpdesk](adding_bcm_helpdesk.html)
+- [BCM Post Office Validation](adding_bcm_post_office_validation.html)
+
+### Development Notes
+Internal development documentation for understanding implementation decisions and architecture changes.
+
+---
+
+## 🎓 Learning Path
+
+::: {.callout-note collapse="true"}
+## Beginner Path
+
+1. Read this overview page
+2. Run the app: `shiny::runApp("app")`
+3. Try discovery tool: `source("tools/discover_surveys.r")`
+4. Study [Quick Start Guide](guides/QUICK_START.html)
+:::
+
+::: {.callout-tip collapse="true"}
+## Intermediate Path
+
+1. Review [Interactive Discovery Guide](guides/INTERACTIVE_DISCOVERY.html)
+2. Study existing exercises in `app/exercises/`
+3. Read validation rules in `app/R/validation_rules.r`
+4. Create your first exercise using the template
+:::
+
+::: {.callout-important collapse="true"}
+## Advanced Path
+
+1. Read complete [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html)
+2. Study the registry system: `app/R/exercise_registry.r`
+3. Create custom validation rules
+4. Build custom visualization components
+5. Extend the framework
+:::
+
+---
+
+## 📝 Quick Reference
+
+| I want to... | Go to... |
+|-------------|----------|
+| Add an exercise quickly | [Quick Start](guides/QUICK_START.html) |
+| Learn survey discovery | [Interactive Discovery](guides/INTERACTIVE_DISCOVERY.html) |
+| Get complete reference | [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html) |
+| See a real example | [BCM Welcome Meals](examples/BCM_WELCOME_MEALS.html) |
+| Understand validation coverage | [Validation Coverage](VALIDATION_COVERAGE.html) |
+| Work with metadata | [Adding Metadata](guides/ADDING_METADATA.html) |
+| Troubleshoot issues | [Troubleshooting Guide](guides/ADDING_NEW_EXERCISES.md#troubleshooting) |
+
+---
+
+::: {.callout-warning}
+## Getting Started
+
+Before you begin, ensure you have:
+
+- R and RStudio installed
+- Access to DataBridges API credentials
+- The project repository cloned locally
+
+See the [Quick Start Guide](guides/QUICK_START.html) for setup instructions.
+:::
+
+---
+
+**Ready to get started?** Choose your path above and dive in! 🚀
+

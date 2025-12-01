@@ -1,0 +1,128 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+    - "*.md"
+
+# Enable mermaid diagrams globally
+mermaid-format: png
+
+website:
+  title: "WFP Jordan Data Quality Automation"
+  site-url: https://wfp-vam.github.io/JOR-data-quality-automation-docs
+  repo-url: https://github.com/WFP-VAM/JOR-data-quality-automation-docs
+  repo-actions: [edit, issue]
+
+  page-navigation: true
+  bread-crumbs: true
+  back-to-top-navigation: true
+
+  navbar:
+    background: primary
+    logo: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/en/wfp-logo-standard-white-en.svg
+    search: true
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Getting Started"
+        menu:
+          - text: "Quick Start"
+            href: guides/QUICK_START.html
+          - text: "Interactive Discovery"
+            href: guides/INTERACTIVE_DISCOVERY.html
+      - text: "Guides"
+        menu:
+          - text: "Adding New Exercises"
+            href: guides/ADDING_NEW_EXERCISES.html
+          - text: "Adding Metadata"
+            href: guides/ADDING_METADATA.html
+          - text: "Validation Coverage"
+            href: guides/VALIDATION_COVERAGE.html
+          - text: "Documentation Guide"
+            href: guides/DOCUMENTATION_GUIDE.html
+          - text: "Building the Site"
+            href: guides/BUILD_SITE.html
+      - text: "Examples"
+        href: examples/BCM_WELCOME_MEALS.html
+      - text: "Development"
+        href: development/METADATA_INTEGRATION_COMPLETE.html
+
+    right:
+      - icon: github
+        href: https://github.com/WFP-VAM/JOR-data-quality-automation-docs
+
+  sidebar:
+    style: "docked"
+    background: light
+    search: true
+    contents:
+      - section: "Getting Started"
+        contents:
+          - text: "Overview"
+            href: index.html
+          - text: "Quick Start Guide"
+            href: guides/QUICK_START.html
+          - text: "Interactive Discovery"
+            href: guides/INTERACTIVE_DISCOVERY.html
+
+      - section: "User Guides"
+        contents:
+          - text: "Adding New Exercises"
+            href: guides/ADDING_NEW_EXERCISES.html
+          - text: "Adding Metadata"
+            href: guides/ADDING_METADATA.html
+          - text: "Validation Coverage"
+            href: guides/VALIDATION_COVERAGE.html
+          - text: "Documentation Guide"
+            href: guides/DOCUMENTATION_GUIDE.html
+          - text: "Building the Site"
+            href: guides/BUILD_SITE.html
+
+      - section: "Examples"
+        contents:
+          - text: "BCM Welcome Meals"
+            href: examples/BCM_WELCOME_MEALS.html
+          - text: "BCM Helpdesk"
+            href: examples/adding_bcm_helpdesk.html
+          - text: "BCM Post Office Validation"
+            href: examples/adding_bcm_post_office_validation.html
+
+      - section: "Development Notes"
+        contents:
+          - text: "Metadata Integration"
+            href: development/METADATA_INTEGRATION_COMPLETE.html
+          - text: "Validation Implementation"
+            href: development/VALIDATION_IMPLEMENTATION_SUMMARY.html
+          - text: "Data Quality Rules"
+            href: development/DATA_QUALITY_RULES.html
+          - text: "Visualization Feature"
+            href: development/VISUALIZATION_FEATURE.html
+          - text: "Link Validation Report"
+            href: development/LINK_VALIDATION_REPORT.html
+
+  page-footer:
+    left: "© 2025 WFP Jordan. Built with [Quarto](https://quarto.org/)."
+    right:
+      - icon: github
+        href: https://github.com/WFP-VAM/JOR-data-quality-automation-docs
+        aria-label: GitHub
+
+format:
+  html:
+    theme:
+      light: [brand, custom.scss]
+    css: styles.css
+    include-in-header: _includes/logo-link.html
+    toc: true
+    toc-depth: 3
+    toc-location: right
+    code-copy: true
+    code-overflow: wrap
+    code-fold: false
+    link-external-newwindow: true
+    link-external-icon: true
+
+mermaid:
+  theme: default
+

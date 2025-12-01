@@ -1,0 +1,80 @@
+meta:
+  name: World Food Programme
+  short: WFP
+  link:
+    home: https://www.wfp.org/
+    github: https://github.com/WFP-VAM
+    bluesky: https://bsky.app/profile/wfp.org
+    x: https://x.com/WFP
+    facebook: https://www.facebook.com/WorldFoodProgramme
+    instagram: https://www.instagram.com/Worldfoodprogramme/
+    linkedin: https://www.linkedin.com/company/unwfp/
+    youtube: https://www.youtube.com/user/WORLDFOODPROGRAM
+    tiktok: https://www.tiktok.com/@worldfoodprogramme
+
+logo:
+  images:
+    standard-black-en: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/en/wfp-logo-standard-black-en.svg
+    standard-blue-en: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/en/wfp-logo-standard-blue-en.svg
+    standard-white-en: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/en/wfp-logo-standard-white-en.svg
+    standard-black-fr: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/fr/wfp-logo-standard-black-fr.svg
+    standard-blue-fr: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/fr/wfp-logo-standard-blue-fr.svg
+    standard-white-fr: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/fr/wfp-logo-standard-white-fr.svg
+    standard-black-es: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/es/wfp-logo-standard-black-es.svg
+    standard-blue-es: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/es/wfp-logo-standard-blue-es.svg
+    standard-white-es: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/es/wfp-logo-standard-white-es.svg
+    standard-black-ar: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/ar/wfp-logo-standard-black-ar.svg
+    standard-blue-ar: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/ar/wfp-logo-standard-blue-ar.svg
+    standard-white-ar: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/standard/ar/wfp-logo-standard-white-ar.svg
+    emblem-black: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/emblem/wfp-logo-emblem-black.svg
+    emblem-blue: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/emblem/wfp-logo-emblem-blue.svg
+    emblem-white: https://raw.githubusercontent.com/wfp/ui-assets/refs/heads/master/src/logos/emblem/wfp-logo-emblem-white.svg
+  small: https://raw.githubusercontent.com/wfp/ui-assets/master/src/favicons/favicon-16x16.png
+  medium:
+    light: standard-blue-en
+    dark: standard-white-en
+  large:
+    light: standard-blue-en
+    dark: standard-white-en
+
+color:
+  palette:
+    wfp-blue: "#007DBC"
+    black: "#000000"
+    white: "#FFFFFF"
+    navy-blue: "#000F59"
+    aqua-marine: "#008EB2"
+    dark-green: "#005D45"
+    green: "#03824A"
+    ivory: "#ECE1B1"
+    earthy-brown: "#AA5628"
+    orange: "#F24C02"
+    red: "#E3002B"
+    purple: "#AC1294"
+    burgundy: "#950158"
+  foreground: black
+  background: white
+  primary: wfp-blue
+  secondary: navy-blue
+  tertiary: ivory
+  success: green
+  info: aqua-marine
+  warning: orange
+  danger: red
+  light: white
+  dark: black
+
+typography:
+  fonts:
+    - family: Open Sans
+      source: google
+  base:
+    family: Open Sans
+    weight: 400
+  headings:
+    family: Open Sans
+    weight: 600
+  monospace:
+    family: Open Sans
+    weight: 400
+
