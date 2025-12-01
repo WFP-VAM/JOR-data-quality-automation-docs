@@ -24,8 +24,6 @@ jobs:
         uses: quarto-dev/quarto-actions/render@v2
         with:
           path: .
-          execute: false
-          cache: false
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

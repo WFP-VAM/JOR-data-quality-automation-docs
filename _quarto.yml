@@ -6,7 +6,8 @@ project:
     - "*.md"
 
 # Enable mermaid diagrams globally
-mermaid-format: png
+# Using SVG instead of PNG for faster rendering
+mermaid-format: svg
 
 website:
   title: "WFP Jordan Data Quality Automation"
