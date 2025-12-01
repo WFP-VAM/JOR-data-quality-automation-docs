@@ -89,20 +89,21 @@ Real-world walkthrough of implementing a complete exercise from start to finish.
 
 The application uses a **registry-based system** where exercises are automatically discovered and loaded from the `app/exercises/` directory.
 
-```{mermaid}
-#| echo: false
-#| eval: false
-graph TB
-    A[Main App<br/>app.r] --> B[Exercise Registry<br/>exercise_registry.r]
-    B --> C[Exercise 1]
-    B --> D[Exercise 2]
-    B --> E[Exercise N]
-    C --> F[Reusable Components]
-    D --> F
-    E --> F
-    F --> G[Validation Rules]
-    F --> H[UI Components]
-    F --> I[Helper Functions]
+**Architecture Flow:**
+
+```
+Main App (app.r)
+    ↓
+Exercise Registry (exercise_registry.r)
+    ↓
+    ├── Exercise 1
+    ├── Exercise 2
+    └── Exercise N
+        ↓
+    Reusable Components
+        ├── Validation Rules
+        ├── UI Components
+        └── Helper Functions
 ```
 
 ### Core Components

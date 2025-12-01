@@ -5,13 +5,11 @@ project:
     - "*.qmd"
     - "*.md"
 
-# Enable mermaid diagrams globally
-# Using SVG instead of PNG for faster rendering
-# Disable mermaid rendering in CI to prevent hangs
-mermaid-format: svg
+# Mermaid configuration - use client-side rendering to avoid CI hangs
 mermaid:
   theme: default
   engine: mermaid
+  format: svg
 
 website:
   title: "WFP Jordan Data Quality Automation"
