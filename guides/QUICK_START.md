@@ -103,6 +103,15 @@ exercise <- list(
       data <- data |> mutate(date = as.Date(date))
     }
     
+    # Derive date column from _submission_time if date column doesn't exist
+    # Some surveys don't have a 'date' column but validation rules need it
+    if (!"date" %in% names(data) && "_submission_time" %in% names(data)) {
+      data <- data |>
+        dplyr::mutate(
+          date = as.Date(substr(.data[["_submission_time"]], 1, 10))
+        )
+    }
+    
     data
   },
   

@@ -255,6 +255,34 @@ Implement the `prepare_data` function to clean and transform raw data:
 4. Calculate derived columns
 5. Handle missing values
 
+#### Handling Missing Date Column
+
+Some surveys don't include a `date` column but validation rules require it. If your survey only has `_submission_time`, derive the date column:
+
+```r
+prepare_data = function(raw_data) {
+  data <- prepare_survey_data(raw_data)
+  
+  # Derive date column from _submission_time if date column doesn't exist
+  if (!"date" %in% names(data) && "_submission_time" %in% names(data)) {
+    data <- data |>
+      dplyr::mutate(
+        date = as.Date(substr(.data[["_submission_time"]], 1, 10))
+      )
+  }
+  
+  data
+}
+```
+
+**When to use this**:
+
+- Your survey doesn't have a `date` column
+- You're using `same_day_submission_rule()` or `late_submission_rule()`
+- Your survey has `_submission_time` column
+
+**Note**: The `substr(..., 1, 10)` extracts the date portion (YYYY-MM-DD) from the ISO timestamp.
+
 ### Step 6: Define Validation Function with affirm
 
 Specify validations using the **affirm** package:
@@ -847,6 +875,39 @@ prepare_data = function(raw_data) {
 **Example exercises with standard date column**:
 
 - `osm_healthy_meals_hc.r` - Uses standard `date` column, no renaming needed
+
+### Validation Fails: "date column not found"
+
+**Issue**: Validation rules fail because the survey doesn't have a `date` column, but rules like `same_day_submission_rule()` and `late_submission_rule()` require it.
+
+**Solution**: Derive the `date` column from `_submission_time` in your `prepare_data` function:
+
+```r
+prepare_data = function(raw_data) {
+  data <- prepare_survey_data(raw_data)
+  
+  # Derive date column from _submission_time if date column doesn't exist
+  if (!"date" %in% names(data) && "_submission_time" %in% names(data)) {
+    data <- data |>
+      dplyr::mutate(
+        date = as.Date(substr(.data[["_submission_time"]], 1, 10))
+      )
+  }
+  
+  data
+}
+```
+
+**Checklist**:
+
+- Check if your survey has a `date` column: `"date" %in% names(data)`
+- If not, derive it from `_submission_time` in `prepare_data` (see above)
+- Ensure the derived date column is created before validations run
+- The `substr(..., 1, 10)` extracts the date portion (YYYY-MM-DD) from the ISO timestamp
+
+**Example exercises that derive date from submission time**:
+
+- `gfa_sbcc_endline_women.r` - Derives `date` from `_submission_time`
 
 ### Choice List Names Don't Match Column Names
 
