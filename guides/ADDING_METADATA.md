@@ -138,6 +138,15 @@ In this case:
 - Use `choice_list_name = "yesno"` for the consent field
 - Use `choice_list_name = "app_status"` for the status field
 
+### Note: `name` vs `value` Column
+
+Some XLSForm files use `value` instead of `name` in the choices sheet. The metadata processing functions handle both automatically:
+
+- **Standard format**: Uses `name` column for choice values
+- **Alternative format**: Uses `value` column for choice values (e.g., `gfa_sbcc_endline_2025_v2.xls`)
+
+Both formats are supported - the processing function will detect and use whichever column is present.
+
 ## Verifying Metadata
 
 ### Check What's in the Metadata
@@ -203,6 +212,23 @@ print(get_choice_label(metadata, "your_list", "your_value"))
 2. XLSForm `name` might differ from API column name
 3. Some columns might be auto-prefixed (e.g., `Q2_1_gender` vs `gender`)
 4. Use `grep("gender", names(data), value = TRUE)` to find it
+
+### Issue: Choice Lists Not Extracted (0 choice lists found)
+
+**Symptom:** Metadata processes successfully but shows 0 choice lists
+
+**Possible causes:**
+
+1. Choices sheet uses `value` column instead of `name` column
+2. Missing `list_name` column in choices sheet
+3. All rows have NA values in `list_name` or value columns
+
+**Solutions:**
+
+1. Check choices sheet structure: `read_excel("your_file.xlsx", sheet = "choices")`
+2. Verify column names: Should have `list_name` and either `name` or `value`
+3. The processing function now handles both `name` and `value` columns automatically
+4. If still not working, check for empty rows or formatting issues in Excel file
 
 ## Complete Example
 
