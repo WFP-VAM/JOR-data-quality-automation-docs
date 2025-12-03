@@ -435,8 +435,8 @@ exercise <- list(
   prepare_data = function(raw_data) { ... },
   visualizations = function(data) { ... },
   
-  # Validation Rules
-  validations = list(...)
+  # Validation Function (required)
+  run_validations = function(data) { ... }
 )
 ```
 

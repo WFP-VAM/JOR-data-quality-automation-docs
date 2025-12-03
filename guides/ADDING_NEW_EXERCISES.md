@@ -285,6 +285,8 @@ prepare_data = function(raw_data) {
 
 ### Step 6: Define Validation Function with affirm
 
+**Required**: Every exercise must define a `run_validations` function. The app calls this function to run data quality checks.
+
 Specify validations using the **affirm** package:
 
 ```r

@@ -89,19 +89,8 @@ exercise <- list(
   
   # Data preparation
   prepare_data = function(raw_data) {
-    data <- raw_data
-    
-    # Remove problematic columns
-    cols_to_remove <- c('_attachments', '_geolocation', '_notes', '_tags')
-    existing_cols <- intersect(cols_to_remove, names(data))
-    if (length(existing_cols) > 0) {
-      data <- data |> select(-all_of(existing_cols))
-    }
-    
-    # Convert date column
-    if ("date" %in% names(data)) {
-      data <- data |> mutate(date = as.Date(date))
-    }
+    # Use standard preparation helper
+    data <- prepare_survey_data(raw_data)
     
     # Derive date column from _submission_time if date column doesn't exist
     # Some surveys don't have a 'date' column but validation rules need it
@@ -112,6 +101,12 @@ exercise <- list(
         )
     }
     
+    # Add any exercise-specific transformations here
+    # Example: Standardize text fields
+    # if ("meal_type" %in% names(data)) {
+    #   data <- data |> mutate(meal_type = trimws(tolower(meal_type)))
+    # }
+    
     data
   },
   
@@ -120,14 +115,25 @@ exercise <- list(
     your_dashboard_function(data)
   },
   
-  # Validation rules
-  validations = list(
-    duration_check = duration_check_rule(),
-    submission_timing_check = same_day_submission_rule(),
-    late_submission_check = late_submission_rule(),
-    missing_data_check = missing_data_rule()
-    # Add more as needed
-  )
+  # Validation function using affirm (required)
+  run_validations = function(data) {
+    # Initialize affirm session and set ID columns for CSV export
+    affirm::affirm_init(replace = TRUE)
+    options('affirm.id_cols' = c("Case_ID", "date", "Enumerator_Name", 
+                                   "_submission_time", "start", "end", "_duration"))
+    
+    exercise_name <- "[Survey Name]"
+    
+    # Run all validations in sequence and remove helper columns at the end
+    result <- data |>
+      duration_check_rule()(id = 1, data_name = exercise_name) |>
+      same_day_submission_rule()(id = 2, data_name = exercise_name) |>
+      late_submission_rule()(id = 3, data_name = exercise_name) |>
+      missing_data_rule()(id = 4, data_name = exercise_name)
+    
+    # Remove all helper columns before returning
+    result |> dplyr::select(-dplyr::starts_with("."))
+  }
 )
 ```
 
