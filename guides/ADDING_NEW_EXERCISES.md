@@ -711,6 +711,529 @@ proportion_check_rule(
 
 ---
 
+## Creating Custom Validation Rules
+
+If existing validation rules don't meet your needs, you can create custom rules following the established pattern.
+
+### Validation Rule Structure
+
+All validation rules follow this pattern:
+
+```r
+#' Custom validation rule
+#' @param param1 Description of parameter
+#' @param param2 Description of parameter
+#' @return Function that applies validation to data
+custom_validation_rule <- function(param1 = default1, param2 = default2) {
+  function(data, id, data_name = "Survey Data") {
+    # 1. Check if required columns exist
+    if (!"required_column" %in% names(data)) {
+      return(data)
+    }
+    
+    # 2. Create helper columns if needed (start with .)
+    result_data <- data |>
+      dplyr::mutate(
+        .helper_check = some_condition(.data[["column_name"]])
+      )
+    
+    # 3. Apply validation using affirm_true()
+    result_data <- result_data |>
+      affirm::affirm_true(
+        label = "Human-readable description of what this checks",
+        condition = .helper_check,  # Boolean condition
+        id = id,
+        data_frames = data_name
+      )
+    
+    # 4. Clean up helper columns (if not needed in output)
+    result_data |> dplyr::select(-.helper_check)
+  }
+}
+```
+
+### Key Patterns
+
+#### 1. Simple Field Check
+
+```r
+simple_field_check_rule <- function(column_name, invalid_values = c("N/A", "No")) {
+  function(data, id, data_name = "Survey Data") {
+    if (column_name %in% names(data)) {
+      affirm::affirm_true(
+        data,
+        label = sprintf("%s does not contain invalid values", column_name),
+        condition = is.na(.data[[column_name]]) |
+                   .data[[column_name]] == "" |
+                   !(.data[[column_name]] %in% invalid_values),
+        id = id,
+        data_frames = data_name
+      )
+    } else {
+      data
+    }
+  }
+}
+```
+
+#### 2. Multiple Field Check
+
+```r
+multiple_field_check_rule <- function(columns, invalid_values = c("N/A", "No")) {
+  function(data, id, data_name = "Survey Data") {
+    result_data <- data
+    
+    # Check each column sequentially
+    for (i in seq_along(columns)) {
+      col <- columns[i]
+      if (col %in% names(result_data)) {
+        result_data <- result_data |>
+          affirm::affirm_true(
+            label = sprintf("Field %s does not contain invalid values", col),
+            condition = is.na(.data[[col]]) |
+                       .data[[col]] == "" |
+                       !(.data[[col]] %in% invalid_values),
+            id = as.integer(id + i - 1),  # Increment ID for each check
+            data_frames = data_name
+          )
+      }
+    }
+    
+    result_data
+  }
+}
+```
+
+#### 3. Conditional Logic
+
+```r
+conditional_field_rule <- function(trigger_column, trigger_value, required_column) {
+  function(data, id, data_name = "Survey Data") {
+    if (!all(c(trigger_column, required_column) %in% names(data))) {
+      return(data)
+    }
+    
+    result_data <- data |>
+      affirm::affirm_true(
+        label = sprintf("%s must be answered when %s = %s", 
+                       required_column, trigger_column, trigger_value),
+        condition = is.na(.data[[trigger_column]]) |
+                   .data[[trigger_column]] != trigger_value |
+                   (!is.na(.data[[required_column]]) & 
+                    .data[[required_column]] != ""),
+        id = id,
+        data_frames = data_name
+      )
+    
+    result_data
+  }
+}
+```
+
+#### 4. Helper Columns for Complex Logic
+
+```r
+complex_validation_rule <- function() {
+  function(data, id, data_name = "Survey Data") {
+    result_data <- data |>
+      dplyr::mutate(
+        # Create helper columns (must start with .)
+        .computed_value = some_calculation(.data[["column1"]], .data[["column2"]]),
+        .check_passed = .computed_value > threshold
+      ) |>
+      affirm::affirm_true(
+        label = "Complex validation description",
+        condition = .check_passed,
+        id = id,
+        data_frames = data_name
+      ) |>
+      # Remove helper columns before returning
+      dplyr::select(-.computed_value, -.check_passed)
+    
+    result_data
+  }
+}
+```
+
+### Adding Helper Columns to globalVariables
+
+If your custom rule creates **new helper columns** (starting with `.`), add them to `globalVariables()`:
+
+```r
+# In app/R/validation_rules.r
+utils::globalVariables(c(
+  # ... existing variables ...
+  ".my_custom_helper_column"  # Add your new helper column
+))
+```
+
+**Note**: You only need to add helper columns (starting with `.`), not regular data columns. Regular columns accessed via `.data[["column_name"]]` don't need to be declared.
+
+### Using Custom Rules in Exercises
+
+Once created, use custom rules just like standard rules:
+
+```r
+run_validations = function(data) {
+  affirm::affirm_init(replace = TRUE)
+  options('affirm.id_cols' = c("ID02", "date", ...))
+  
+  exercise_name <- "My Exercise"
+  
+  result <- data |>
+    duration_check_rule()(id = 1, data_name = exercise_name) |>
+    custom_validation_rule(param1 = value1)(id = 2, data_name = exercise_name) |>
+    another_custom_rule()(id = 3, data_name = exercise_name)
+  
+  result |> dplyr::select(-dplyr::starts_with("."))
+}
+```
+
+### Best Practices
+
+1. **Always check column existence** before accessing columns
+2. **Use descriptive labels** that explain what the validation checks
+3. **Increment IDs** when checking multiple fields (id, id+1, id+2, etc.)
+4. **Clean up helper columns** before returning (unless needed for CSV export)
+5. **Handle missing columns gracefully** (return data unchanged if columns don't exist)
+6. **Use `.data[[]]` syntax** for programmatic column access
+7. **Document parameters** with roxygen comments
+
+---
+
+## Visualization Reference
+
+This section provides complete guidance on creating custom dashboard visualizations.
+
+### Dashboard Function Structure
+
+All dashboard functions follow this pattern:
+
+```r
+#' Create monitoring dashboard for [Exercise Name]
+#' @param data The survey data
+#' @param metadata Optional metadata for applying labels
+#' @return HTML with monitoring visualizations
+your_exercise_dashboard <- function(data, metadata = NULL) {
+  if (is.null(data) || nrow(data) == 0) {
+    return(NULL)
+  }
+  
+  # Helper function to get label from metadata, with fallback
+  get_label <- function(column_name, fallback) {
+    if (!is.null(metadata)) {
+      label <- get_variable_label(metadata, column_name)
+      if (label != column_name) {
+        return(label)
+      }
+    }
+    return(fallback)
+  }
+
+  tagList(
+    tags$hr(),
+    tags$h3("Findings Overview", style = "margin-top: 20px; margin-bottom: 15px; color: #333;"),
+    
+    # Your dashboard sections here
+    # ...
+  )
+}
+```
+
+### Available UI Components
+
+#### metric_card()
+
+Displays a percentage metric with color coding (green ≥80%, yellow ≥50%, red <50%).
+
+```r
+metric_card(
+  data,                    # Survey data frame
+  column,                  # Column name to analyze
+  label,                   # Display label
+  positive_value = "Yes"  # Value that counts as "positive" (default "Yes")
+)
+```
+
+**Example**:
+```r
+metric_card(data, "has_complaint", "Has Complaint", positive_value = "No")
+```
+
+#### breakdown_card()
+
+Displays a categorical breakdown with bar chart.
+
+```r
+breakdown_card(
+  data,                    # Survey data frame
+  column,                  # Column name to analyze
+  label,                   # Display label
+  metadata = NULL,         # Optional metadata for labels
+  choice_list_name = NULL  # Choice list name from XLSForm (for label mapping)
+)
+```
+
+**Example**:
+```r
+breakdown_card(data, "Q2_1_gender", 
+              get_label("Q2_1_gender", "Gender Distribution"),
+              metadata = metadata,
+              choice_list_name = "gender")
+```
+
+#### time_metric_card()
+
+Displays average time in minutes with context.
+
+```r
+time_metric_card(
+  data,     # Survey data frame
+  column,   # Time column name (in seconds)
+  label     # Display label
+)
+```
+
+**Example**:
+```r
+time_metric_card(data, "Q4_2_waitingtime", "Average Waiting Time")
+```
+
+#### satisfaction_metric_card()
+
+Displays satisfaction percentage (for Yes/No questions).
+
+```r
+satisfaction_metric_card(
+  data,     # Survey data frame
+  column,   # Column name
+  label     # Display label
+)
+```
+
+**Example**:
+```r
+satisfaction_metric_card(data, "Q4_1_were_trated_respectfully", 
+                        "Treated Respectfully")
+```
+
+### Shiny UI Layout Components
+
+#### tagList()
+
+Container for multiple UI elements.
+
+```r
+tagList(
+  tags$hr(),
+  tags$h3("Section Title"),
+  div(...),
+  fluidRow(...)
+)
+```
+
+#### fluidRow() and column()
+
+Create responsive grid layouts.
+
+```r
+fluidRow(
+  column(4, metric_card(...)),  # 4/12 width
+  column(4, metric_card(...)),  # 4/12 width
+  column(4, metric_card(...))   # 4/12 width
+)
+```
+
+**Column widths**: Use 1-12 (Bootstrap grid system). Common patterns:
+- `column(4, ...)` - 3 columns per row
+- `column(6, ...)` - 2 columns per row
+- `column(12, ...)` - Full width
+
+#### Conditional Rendering
+
+Only show sections if columns exist:
+
+```r
+if ("column_name" %in% names(data)) {
+  div(
+    style = "margin-bottom: 20px;",
+    h4("Section Title"),
+    metric_card(data, "column_name", "Label")
+  )
+} else {
+  NULL
+}
+```
+
+### Common Dashboard Patterns
+
+#### 1. Survey Duration Overview
+
+```r
+if ("_duration" %in% names(data)) {
+  duration_filtered <- data$`_duration`[data$`_duration` != ""]
+  valid_count <- sum(!is.na(duration_filtered) & duration_filtered != "")
+  
+  if (valid_count > 0) {
+    duration_numeric <- as.numeric(duration_filtered)
+    avg_seconds <- mean(duration_numeric, na.rm = TRUE)
+    
+    if (!is.na(avg_seconds) && is.finite(avg_seconds) && avg_seconds > 0) {
+      div(
+        style = "margin-bottom: 20px;",
+        div(
+          style = "background: white; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
+          div(style = "display: flex; justify-content: space-between; align-items: center;",
+              div(
+                style = "flex: 1;",
+                div(style = "font-size: 14px; font-weight: 600; color: #333;", 
+                    "Average Survey Duration"),
+                div(style = "font-size: 12px; color: #666; margin-top: 5px;",
+                    sprintf("Based on %d surveys", valid_count))
+              ),
+              div(
+                style = "font-size: 28px; font-weight: bold; color: #007bff;",
+                sprintf("%.1f min", avg_seconds / 60)
+              )
+          )
+        )
+      )
+    }
+  }
+}
+```
+
+#### 2. Metric Cards Section
+
+```r
+div(
+  style = "margin-bottom: 20px;",
+  h4("Section Title", style = "color: #555; font-size: 16px; margin-bottom: 10px;"),
+  p(style = "font-size: 12px; color: #666; margin-bottom: 10px;",
+    "Description of what this section shows."),
+  fluidRow(
+    column(4, metric_card(data, "column1", get_label("column1", "Label 1"))),
+    column(4, metric_card(data, "column2", get_label("column2", "Label 2"))),
+    column(4, metric_card(data, "column3", get_label("column3", "Label 3")))
+  )
+)
+```
+
+#### 3. Breakdown Section
+
+```r
+div(
+  style = "margin-bottom: 20px;",
+  h4("Category Breakdown", style = "color: #555; font-size: 16px; margin-bottom: 10px;"),
+  breakdown_card(data, "category_column", 
+                get_label("category_column", "Category Distribution"),
+                metadata = metadata,
+                choice_list_name = "choice_list_name")
+)
+```
+
+#### 4. Date Range Display
+
+```r
+if ("date" %in% names(data)) {
+  div(
+    style = "margin-bottom: 20px;",
+    h4("Data Collection Timeline", style = "color: #555; font-size: 16px; margin-bottom: 10px;"),
+    div(
+      style = "background: white; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
+      div(style = "font-size: 14px; color: #666; margin-bottom: 10px;", "Collection Period"),
+      div(style = "font-size: 13px; color: #333;",
+          sprintf("From %s to %s (%d days)",
+                 min(data$date, na.rm = TRUE),
+                 max(data$date, na.rm = TRUE),
+                 as.numeric(difftime(max(data$date, na.rm = TRUE), 
+                                    min(data$date, na.rm = TRUE), 
+                                    units = "days"))))
+    )
+  )
+}
+```
+
+### Complete Example
+
+```r
+sbcc_endline_women_dashboard <- function(data, metadata = NULL) {
+  if (is.null(data) || nrow(data) == 0) {
+    return(NULL)
+  }
+  
+  get_label <- function(column_name, fallback) {
+    if (!is.null(metadata)) {
+      label <- get_variable_label(metadata, column_name)
+      if (label != column_name) return(label)
+    }
+    return(fallback)
+  }
+
+  tagList(
+    tags$hr(),
+    tags$h3("Findings Overview", style = "margin-top: 20px; margin-bottom: 15px; color: #333;"),
+
+    # Survey duration
+    if ("_duration" %in% names(data)) {
+      # ... duration code ...
+    },
+
+    # Metrics section
+    div(
+      style = "margin-bottom: 20px;",
+      h4("Response Metrics", style = "color: #555; font-size: 16px; margin-bottom: 10px;"),
+      fluidRow(
+        if ("Q307" %in% names(data)) {
+          column(4, metric_card(data, "Q307", get_label("Q307", "Response Q307")))
+        },
+        if ("Q309" %in% names(data)) {
+          column(4, metric_card(data, "Q309", get_label("Q309", "Response Q309")))
+        }
+      )
+    ),
+
+    # Breakdown section
+    if ("name" %in% names(data)) {
+      div(
+        style = "margin-bottom: 20px;",
+        h4("Enumerator Activity", style = "color: #555; font-size: 16px; margin-bottom: 10px;"),
+        breakdown_card(data, "name", get_label("name", "Surveys by Enumerator"),
+                      metadata = metadata)
+      )
+    }
+  )
+}
+```
+
+### Best Practices
+
+1. **Always check for empty data**: Return `NULL` if data is empty
+2. **Use conditional rendering**: Only show sections if columns exist
+3. **Use metadata labels**: Always use `get_label()` helper with fallbacks
+4. **Consistent styling**: Follow existing dashboard patterns for visual consistency
+5. **Responsive layout**: Use `fluidRow()` and `column()` for responsive design
+6. **Error handling**: Handle missing columns gracefully (return `NULL` or skip section)
+7. **Documentation**: Add roxygen comments describing what the dashboard shows
+
+### Adding Dashboard to Exercise
+
+Once created, add the dashboard function to `app/R/visualization_helpers.r` and reference it in your exercise:
+
+```r
+visualizations = function(data) {
+  metadata <- tryCatch({
+    load_survey_metadata("XXXX", "../metadata/processed")
+  }, error = function(e) {
+    NULL
+  })
+  
+  your_exercise_dashboard(data, metadata = metadata)
+}
+```
+
+---
+
 ## CSV Export Configuration
 
 The `affirm.id_cols` option controls which columns appear in CSV exports of violated records. This is **critical** for users to understand and verify violations.
