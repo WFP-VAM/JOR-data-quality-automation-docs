@@ -709,6 +709,371 @@ proportion_check_rule(
 )
 ```
 
+### gps_location_match_rule()
+
+Validates that GPS coordinates entered match the selected location from dropdown.
+
+**Requires**: `sf` package (included in `renv.lock`)
+
+**Complete Setup Workflow**:
+
+#### Step 1: Process GPS Coordinates
+
+GPS coordinates are stored in `metadata/raw/GPS coordinates.xlsx` with multiple sheets (e.g., "HelpDesk", "POs").
+
+```r
+# Process GPS coordinates from Excel file
+source("tools/process_gps_coordinates.r")
+```
+
+This creates processed .rds files in `metadata/processed/`:
+- `gps_HelpDesk.rds` - Helpdesk locations
+- `gps_POs.rds` - Post office locations  
+- `all_gps_coordinates.rds` - Combined file
+
+#### Step 2: Discover GPS Columns in Your Survey
+
+Use the interactive discovery script to check what GPS columns exist:
+
+```r
+source("tools/discover_surveys.r")
+inspect_survey(YOUR_SURVEY_ID)
+
+# Check for GPS columns
+geo_cols <- names(current_survey_data)[grepl("geo|gps|location|lat|lon", names(current_survey_data), ignore.case=TRUE)]
+cat("GPS columns:", paste(geo_cols, collapse=", "), "\n")
+
+# Check sample values
+if("_geolocation" %in% names(current_survey_data)) {
+  print(head(current_survey_data$_geolocation, 3))
+}
+```
+
+**Common GPS column formats**:
+- `_geolocation` - List/vector format: `c(lat, lon)` or string: `"lat lon"`
+- `gps` - String format: `"lat lon alt accuracy"`
+- Separate columns: `latitude`/`longitude` or `lat`/`lon`
+
+#### Step 3: Update prepare_data to Keep GPS Columns
+
+**Important**: The default `prepare_survey_data()` removes `_geolocation`. You must keep it for GPS validation:
+
+```r
+prepare_data = function(raw_data) {
+  # Keep _geolocation for GPS validation (don't remove it)
+  prepare_survey_data(
+    raw_data,
+    columns_to_remove = c('_attachments', '_notes', '_tags')  # Keep _geolocation
+  )
+}
+```
+
+#### Step 4: Add GPS Validation to Your Exercise
+
+```r
+run_validations = function(data) {
+    affirm::affirm_init(replace = TRUE)
+    # Include GPS column and distance column in CSV export
+    options('affirm.id_cols' = c("Case_ID", "date", "location_column", "_geolocation", "gps_distance_to_target_m", ...))
+  
+  exercise_name <- "Your Exercise Name"
+  
+  # Load GPS coordinates
+  gps_data <- tryCatch({
+    load_gps_coordinates("HelpDesk", "../metadata/processed")  # Use appropriate sheet name
+  }, error = function(e) {
+    warning("Could not load GPS coordinates: ", e$message)
+    NULL
+  })
+  
+  # Run other validations first
+  result <- data |>
+    duration_check_rule()(id = 1, data_name = exercise_name) |>
+    same_day_submission_rule()(id = 2, data_name = exercise_name) |>
+    # ... other validations ...
+  
+  # Add GPS validation if GPS data is available
+  if (!is.null(gps_data)) {
+    result <- result |>
+      gps_location_match_rule(
+        location_column = "your_location_column",  # Column with selected location
+        gps_data = gps_data,
+        list_name_filter = "helpdesk",            # Filter GPS data by list_name
+        max_distance_meters = 100                 # Maximum allowed distance
+      )(id = NEXT_ID, data_name = exercise_name)
+  }
+  
+  result |> dplyr::select(-dplyr::starts_with("."))
+}
+```
+
+**Parameters**:
+
+- `location_column`: Column name containing the selected location from dropdown (e.g., `"_1_6_Helpdesk_name"`)
+- `gps_data`: GPS coordinates data frame from `load_gps_coordinates()`
+- `list_name_filter`: Filter GPS data by `list_name` (e.g., `"helpdesk"`, `"post_name"`). Must match the `list_name` values in your GPS coordinates file
+- `max_distance_meters`: Maximum allowed distance in meters (default 100)
+
+**How it works**:
+1. **Extracts GPS coordinates** from survey data:
+
+   - If `_geolocation` exists: Extracts lat/lon from list/vector format `c(lat, lon)` or string format
+   - If `gps` column exists: Parses string format `"lat lon alt accuracy"`
+   - If separate lat/lon columns exist: Uses those directly
+   - Trims whitespace from location names for better matching
+2. **Matches location names** using a robust multi-strategy approach (in order of preference):
+
+   - **Exact match by `name`** (most common - numeric codes like "1", "2", "3")
+   - **Exact match by `label`** (Arabic or English names)
+   - **Case-insensitive exact match** by `name` or `label`
+   - **Partial string matching** (fallback) - checks if location name appears in GPS data or vice versa
+   - All matching includes whitespace trimming for reliability
+3. **Calculates distance** using `sf` package (geodesic distance in meters)
+4. **Adds distance column**: Creates `gps_distance_to_target_m` column showing distance in meters for each record
+5. **Validates** that distance is within `max_distance_meters` threshold
+
+**Distance Column**:
+The validation automatically adds a `gps_distance_to_target_m` column to the data showing the distance in meters between the entered GPS coordinates and the expected location from metadata. This column:
+
+- Appears in the affirm validation report
+- Is included in CSV exports for violated records
+- Shows `NA` for records without GPS data or when location is not found in GPS metadata
+- Helps identify how far off GPS coordinates are from expected locations
+
+**GPS Column Detection**:
+
+- Automatically detects GPS columns from common names: `_geolocation`, `latitude`/`longitude`, `lat`/`lon`, `gps`, etc.
+- Handles multiple formats:
+  - List/vector: `c(32.0, 35.9)` or `[32.0, 35.9]`
+  - String: `"32.0 35.9"` or `"32.0, 35.9"`
+  - Separate columns: `latitude` and `longitude`
+
+**Complete Example: BCM Helpdesk Validation**
+
+See `app/exercises/bcm_helpdesk_validation.r` for a complete working example:
+
+```r
+exercise <- list(
+  id = "5387",
+  name = "BCM - Helpdesk Validation",
+  
+  # ... other fields ...
+  
+  prepare_data = function(raw_data) {
+    # Keep _geolocation for GPS validation
+    prepare_survey_data(
+      raw_data,
+      columns_to_remove = c('_attachments', '_notes', '_tags')
+    )
+  },
+  
+  run_validations = function(data) {
+    affirm::affirm_init(replace = TRUE)
+    options('affirm.id_cols' = c("Case_ID", "date", "_1_6_Helpdesk_name", 
+                                 "_submission_time", "start", "end", "_duration", 
+                                 "Interviewee_Phone_Number", "_geolocation", 
+                                 "gps_distance_to_target_m"))
+    
+    exercise_name <- "BCM - Helpdesk Validation"
+    
+    # Load GPS coordinates
+    gps_data <- tryCatch({
+      load_gps_coordinates("HelpDesk", "../metadata/processed")
+    }, error = function(e) {
+      warning("Could not load GPS coordinates: ", e$message)
+      NULL
+    })
+    
+    result <- data |>
+      duration_check_rule()(id = 1, data_name = exercise_name) |>
+      same_day_submission_rule()(id = 2, data_name = exercise_name) |>
+      case_id_uniqueness_rule()(id = 3, data_name = exercise_name) |>
+      phone_uniqueness_rule()(id = 4, data_name = exercise_name) |>
+      late_submission_rule()(id = 5, data_name = exercise_name) |>
+      missing_data_rule()(id = 6, data_name = exercise_name)
+    
+    # Add GPS validation
+    if (!is.null(gps_data)) {
+      result <- result |>
+        gps_location_match_rule(
+          location_column = "_1_6_Helpdesk_name",
+          gps_data = gps_data,
+          list_name_filter = "helpdesk",
+          max_distance_meters = 100
+        )(id = 7, data_name = exercise_name)
+    }
+    
+    result |> dplyr::select(-dplyr::starts_with("."))
+  }
+)
+```
+
+**Complete Example: BCM Post Office Validation**
+
+See `app/exercises/bcm_post_office_validation.r` for another complete working example using Post Office GPS coordinates:
+
+```r
+exercise <- list(
+  id = "5407",
+  name = "BCM - Post Office Validation",
+  
+  # ... other fields ...
+  
+  prepare_data = function(raw_data) {
+    # Keep _geolocation for GPS validation
+    prepare_survey_data(
+      raw_data,
+      columns_to_remove = c('_attachments', '_notes', '_tags')
+    )
+  },
+  
+  run_validations = function(data) {
+    affirm::affirm_init(replace = TRUE)
+    options('affirm.id_cols' = c("date", "_1_6_Post_office_name", "governorate", 
+                                 "_submission_time", "start", "end", "_duration", 
+                                 "monitor_name", "_geolocation", 
+                                 "gps_distance_to_target_m"))
+    
+    exercise_name <- "BCM - Post Office Validation"
+    
+    # Load GPS coordinates for Post Offices (note: uses "POs" sheet name)
+    gps_data <- tryCatch({
+      load_gps_coordinates("POs", "../metadata/processed")
+    }, error = function(e) {
+      warning("Could not load GPS coordinates: ", e$message)
+      NULL
+    })
+    
+    result <- data |>
+      duration_check_rule()(id = 1, data_name = exercise_name) |>
+      same_day_submission_rule()(id = 2, data_name = exercise_name) |>
+      late_submission_rule()(id = 3, data_name = exercise_name) |>
+      time_outlier_rule()(id = 4, data_name = exercise_name) |>
+      conditional_field_rule()(id = 6, data_name = exercise_name) |>
+      respectful_treatment_flag()(id = 8, data_name = exercise_name) |>
+      missing_data_rule()(id = 9, data_name = exercise_name)
+    
+    # Add GPS validation (note: uses "post_name" as list_name_filter)
+    if (!is.null(gps_data)) {
+      result <- result |>
+        gps_location_match_rule(
+          location_column = "_1_6_Post_office_name",
+          gps_data = gps_data,
+          list_name_filter = "post_name",
+          max_distance_meters = 100
+        )(id = 10, data_name = exercise_name)
+    }
+    
+    result |> dplyr::select(-dplyr::starts_with("."))
+  }
+)
+```
+
+**Complete Example: OSM Post Office Validation**
+
+See `app/exercises/osm_post_office.r` for another complete working example using Post Office GPS coordinates:
+
+```r
+exercise <- list(
+  id = "5406",
+  name = "OSM - Post Office Validation",
+  
+  # ... other fields ...
+  
+  prepare_data = function(raw_data) {
+    # Keep _geolocation for GPS validation
+    prepare_survey_data(
+      raw_data,
+      columns_to_remove = c('_attachments', '_notes', '_tags')
+    )
+  },
+  
+  run_validations = function(data) {
+    affirm::affirm_init(replace = TRUE)
+    options('affirm.id_cols' = c("_1_6_Post_office_name", "date", "monitor_name", 
+                                 "governorate", "time", "_submission_time", 
+                                 "start", "end", "_duration", "_geolocation", 
+                                 "gps_distance_to_target_m"))
+    
+    exercise_name <- "OSM - Post Office Validation"
+    
+    # Load GPS coordinates for Post Offices
+    gps_data <- tryCatch({
+      load_gps_coordinates("POs", "../metadata/processed")
+    }, error = function(e) {
+      warning("Could not load GPS coordinates: ", e$message)
+      NULL
+    })
+    
+    result <- data |>
+      duration_check_rule(min_seconds = 60, max_seconds = 3600)(id = 1, data_name = exercise_name) |>
+      same_day_submission_rule()(id = 2, data_name = exercise_name) |>
+      late_submission_rule()(id = 3, data_name = exercise_name) |>
+      location_visit_frequency_rule(
+        location_column = "_1_6_Post_office_name",
+        max_visits_host = 2,
+        max_visits_camp = 2
+      )(id = 4, data_name = exercise_name) |>
+      missing_data_rule()(id = 5, data_name = exercise_name)
+    
+    # Add GPS validation
+    if (!is.null(gps_data)) {
+      result <- result |>
+        gps_location_match_rule(
+          location_column = "_1_6_Post_office_name",
+          gps_data = gps_data,
+          list_name_filter = "post_name",
+          max_distance_meters = 100
+        )(id = 6, data_name = exercise_name)
+    }
+    
+    result |> dplyr::select(-dplyr::starts_with("."))
+  }
+)
+```
+
+**Troubleshooting**:
+
+**Issue**: Validation shows "No GPS data available"
+
+- **Check**: Does your survey data have `_geolocation` or `gps` column?
+- **Solution**: Use `inspect_survey()` to check available columns
+- **Check**: Did you keep `_geolocation` in `prepare_data`? (Don't remove it!)
+
+**Issue**: Location names don't match
+
+- **Check**: What values are in your location column? Use `table(data$location_column)`
+- **Check**: What `name` and `label` values are in GPS coordinates? Use `load_gps_coordinates()` and inspect
+- **Solution**: The validation uses a robust multi-strategy matching approach:
+  1. First tries exact matches (most reliable - numeric codes or exact labels)
+  2. Falls back to case-insensitive exact matches
+  3. Finally tries partial string matching
+  - Ensure `list_name_filter` matches your GPS data's `list_name` column
+  - The validation automatically trims whitespace, so minor formatting differences shouldn't cause issues
+  - If many locations fail to match, check if your survey uses numeric codes (like "1", "2", "3") that match the GPS `name` column
+
+**Issue**: High failure rate (many GPS checks failing)
+
+- **Check**: Are GPS coordinates consistently far from expected locations?
+- **Check**: Are location names matching correctly? (See above)
+- **Solution**: 
+  - Verify GPS coordinates in survey data are accurate
+  - Check if distance threshold (`max_distance_meters`) needs adjustment
+  - Review the `gps_distance_to_target_m` column to see actual distances
+  - Ensure GPS metadata coordinates are correct for your locations
+
+**Issue**: All validations pass but GPS validation doesn't appear
+
+- **Check**: Is GPS data loading? Check console for warnings
+- **Check**: Do you have GPS coordinates in your data? Check `sum(!is.na(data$_geolocation))`
+- **Solution**: Validation only shows if GPS data exists. If no GPS data, it shows "No GPS data available" message
+
+**Issue**: Warnings about `grepl()` or vector patterns
+
+- **Solution**: These warnings have been fixed in the latest version. The validation now uses proper vectorized operations for reliable matching.
+
+**See also**: [GPS Coordinates Metadata](https://wfp-vam.github.io/JOR-data-quality-automation-docs/guides/ADDING_METADATA.html#gps-coordinates-metadata) in ADDING_METADATA.md
+
 ---
 
 ## Creating Custom Validation Rules

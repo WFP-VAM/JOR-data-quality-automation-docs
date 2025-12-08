@@ -281,6 +281,173 @@ bcm_monitoring_dashboard <- function(data, metadata = NULL) {
 5. **Update combined file** - Always update `all_metadata.rds` after processing new surveys
 6. **Document mappings** - Add comments explaining non-obvious survey ID mappings
 
+## GPS Coordinates Metadata
+
+GPS coordinates are stored separately from survey metadata and are used for location validation. This allows you to validate that GPS coordinates entered during data collection match the location selected from a dropdown menu.
+
+### GPS Coordinates File Structure
+
+GPS coordinates are stored in `metadata/raw/GPS coordinates.xlsx` with multiple sheets:
+
+- **HelpDesk** sheet: Contains helpdesk locations with columns:
+
+  - `list_name`: Filter identifier (e.g., "helpdesk", "Bread", "Shops")
+  - `name`: Location identifier used in survey (e.g., "future_amman", "red_crescent")
+  - `label`: Human-readable location name (e.g., "Future Club Huassin", "Jordan Red Crescent")
+  - `Gov`: Governorate
+  - `GPS coordinate`: Coordinate string in format "lat, lon" (e.g., "32.0, 35.9")
+  - `Comment`: Optional notes
+
+- **POs** sheet: Contains post office locations (similar structure)
+
+### Processing GPS Coordinates
+
+To process GPS coordinates from the Excel file:
+
+```r
+# Run the GPS processing script
+source("tools/process_gps_coordinates.r")
+```
+
+This script will:
+1. Load GPS coordinates from `metadata/raw/GPS coordinates.xlsx`
+2. Parse GPS coordinate strings (format: "lat, lon") into separate `lat` and `lon` columns
+3. Remove rows with invalid coordinates
+4. Save processed .rds files to `metadata/processed/`:
+
+   - `gps_HelpDesk.rds` - Helpdesk locations (17 locations)
+   - `gps_POs.rds` - Post office locations (92 locations)
+   - `all_gps_coordinates.rds` - Combined file with all sheets
+
+**Example output**:
+```
+GPS COORDINATES PROCESSING PIPELINE
+================================================================================
+
+Loading GPS coordinates from: .../metadata/raw/GPS coordinates.xlsx
+
+=== Loading Sheets ===
+Found sheets: POs, HelpDesk
+
+Processing sheet: HelpDesk
+  Rows: 30
+  Columns: list_name, name, label, Gov, GPS coordinate, Comment
+  Valid coordinates: 30
+  ✓ Processed successfully
+
+=== Saving Processed GPS Coordinates ===
+Saved: .../metadata/processed/gps_HelpDesk.rds
+  Rows: 30
+```
+
+### Loading GPS Coordinates
+
+```r
+# Load GPS coordinates for a specific sheet
+gps_data <- load_gps_coordinates("HelpDesk", "../metadata/processed")
+
+# Check what's loaded
+print(head(gps_data[, c("name", "label", "lat", "lon")]))
+
+# Load all GPS coordinates
+all_gps <- load_all_gps_coordinates("../metadata/processed")
+```
+
+### Using GPS Coordinates in Validation
+
+GPS coordinates are used to validate that entered GPS coordinates match the selected location. See the complete example in [GPS Validation Guide](https://wfp-vam.github.io/JOR-data-quality-automation-docs/guides/ADDING_NEW_EXERCISES.html#gps_location_match_rule).
+
+**Quick reference**:
+
+```r
+# In your exercise's run_validations function
+# For HelpDesk locations:
+gps_data <- tryCatch({
+  load_gps_coordinates("HelpDesk", "../metadata/processed")
+}, error = function(e) {
+  NULL
+})
+
+# For Post Office locations:
+# gps_data <- tryCatch({
+#   load_gps_coordinates("POs", "../metadata/processed")
+# }, error = function(e) {
+#   NULL
+# })
+
+if (!is.null(gps_data)) {
+  result <- result |>
+    gps_location_match_rule(
+      location_column = "_1_6_Helpdesk_name",  # Your location dropdown column
+      gps_data = gps_data,
+      list_name_filter = "helpdesk",           # Must match list_name in GPS file
+      max_distance_meters = 100                # Distance threshold
+    )(id = 7, data_name = exercise_name)
+}
+
+# The validation automatically adds a 'gps_distance_to_target_m' column
+# showing the distance in meters for each record
+```
+
+**Important Notes**:
+
+1. **`list_name_filter` must match**: The `list_name_filter` parameter must match the `list_name` values in your GPS coordinates file. For example, if your GPS file has `list_name = "helpdesk"`, use `list_name_filter = "helpdesk"`.
+
+2. **Location matching**: The validation uses a robust multi-strategy matching approach (in order of preference):
+
+   - **Exact match by `name`** (most common - numeric codes like "1", "2", "3" for post offices)
+   - **Exact match by `label`** (Arabic or English names)
+   - **Case-insensitive exact match** by `name` or `label`
+   - **Partial string matching** (fallback) - checks if location name appears in GPS data or vice versa
+   - All matching includes whitespace trimming for reliability
+   - Matching is optimized to handle common data variations and formatting differences
+
+3. **GPS column formats**: The validation automatically handles:
+
+   - `_geolocation` column: List/vector format `c(lat, lon)` or string `"lat lon"`
+   - `gps` column: String format `"lat lon alt accuracy"`
+   - Separate columns: `latitude`/`longitude` or `lat`/`lon`
+
+4. **Keep GPS columns**: Don't remove `_geolocation` in `prepare_data` - it's needed for validation!
+
+5. **Distance column**: The validation automatically adds a `gps_distance_to_target_m` column showing the distance in meters between entered GPS coordinates and the expected location. This column:
+
+   - Appears in the affirm validation report
+   - Is included in CSV exports (add `"gps_distance_to_target_m"` to `affirm.id_cols`)
+   - Shows `NA` for records without GPS data or when location is not found
+   - Helps identify how far off GPS coordinates are from expected locations
+
+### Updating GPS Coordinates
+
+When GPS coordinates need to be updated or corrected:
+
+1. **Edit the Excel file**: Update `metadata/raw/GPS coordinates.xlsx` with new or corrected coordinates
+2. **Reprocess**: Run `source("tools/process_gps_coordinates.r")` to regenerate processed files
+3. **Restart app**: Restart the Shiny app to load new GPS coordinates
+
+**Adding new locations**:
+
+- Add rows to the appropriate sheet (HelpDesk, POs, etc.)
+- Ensure `list_name` matches what you'll use in `list_name_filter`
+- Format GPS coordinates as "lat, lon" (e.g., "32.0, 35.9")
+- Run the processing script to update .rds files
+
+### Example: Complete GPS Validation Setup
+
+See these complete working examples:
+
+- **BCM Helpdesk Validation** (`app/exercises/bcm_helpdesk_validation.r`): Uses HelpDesk GPS coordinates with `list_name_filter = "helpdesk"`
+- **BCM Post Office Validation** (`app/exercises/bcm_post_office_validation.r`): Uses Post Office GPS coordinates with `list_name_filter = "post_name"`
+- **OSM Post Office Validation** (`app/exercises/osm_post_office.r`): Uses Post Office GPS coordinates with `list_name_filter = "post_name"`
+
+All examples demonstrate:
+
+- Processing GPS coordinates
+- Keeping `_geolocation` column in `prepare_data`
+- Loading GPS data in `run_validations`
+- Applying GPS validation with proper error handling
+- Including `gps_distance_to_target_m` in CSV exports
+
 ## References
 
 - Full integration details: `docs/development/METADATA_INTEGRATION.md`
