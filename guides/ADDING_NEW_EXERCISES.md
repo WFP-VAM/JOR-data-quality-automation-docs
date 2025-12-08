@@ -1054,6 +1054,7 @@ exercise <- list(
 
 **Issue**: High failure rate (many GPS checks failing)
 
+>>>>>>> b1e3d98b7b8b014528927e775c23d63b62ff92dd
 - **Check**: Are GPS coordinates consistently far from expected locations?
 - **Check**: Are location names matching correctly? (See above)
 - **Solution**: 
