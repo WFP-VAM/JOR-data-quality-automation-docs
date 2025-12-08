@@ -727,6 +727,7 @@ source("tools/process_gps_coordinates.r")
 ```
 
 This creates processed .rds files in `metadata/processed/`:
+
 - `gps_HelpDesk.rds` - Helpdesk locations
 - `gps_POs.rds` - Post office locations  
 - `all_gps_coordinates.rds` - Combined file
@@ -750,6 +751,7 @@ if("_geolocation" %in% names(current_survey_data)) {
 ```
 
 **Common GPS column formats**:
+
 - `_geolocation` - List/vector format: `c(lat, lon)` or string: `"lat lon"`
 - `gps` - String format: `"lat lon alt accuracy"`
 - Separate columns: `latitude`/`longitude` or `lat`/`lon`
@@ -1054,7 +1056,6 @@ exercise <- list(
 
 **Issue**: High failure rate (many GPS checks failing)
 
->>>>>>> b1e3d98b7b8b014528927e775c23d63b62ff92dd
 - **Check**: Are GPS coordinates consistently far from expected locations?
 - **Check**: Are location names matching correctly? (See above)
 - **Solution**: 
@@ -1075,7 +1076,6 @@ exercise <- list(
 
 **See also**: [GPS Coordinates Metadata](https://wfp-vam.github.io/JOR-data-quality-automation-docs/guides/ADDING_METADATA.html#gps-coordinates-metadata) in ADDING_METADATA.md
 
----
 
 ## Creating Custom Validation Rules
 
@@ -2184,6 +2184,7 @@ glimpse(current_survey_data)
 Based on the data structure, we determined appropriate validations:
 
 **Validation Strategy**:
+
 1. ✅ **Duration check**: Set bounds (1 min to 1 hour) - we saw durations from 93 seconds to 32,323 seconds
 2. ✅ **Same day submission**: Ensure surveys submitted same day as collection
 3. ✅ **Late submission**: Check for delays beyond 24 hours
@@ -2193,7 +2194,9 @@ Based on the data structure, we determined appropriate validations:
 7. ❌ **No proportion checks**: Equipment status doesn't need proportion validation
 
 **CSV Export Columns**:
+
 Set `affirm.id_cols` to include all columns needed for verification:
+
 - `_1_6_Post_office_name` - Which post office
 - `date` - When visited
 - `monitor_name` - Who conducted the visit
@@ -2262,6 +2265,7 @@ exercise <- list(
 ```
 
 **Key decisions documented**:
+
 - Used `_1_6_Post_office_name` as filter (allows filtering by post office)
 - Set duration bounds to 1 min - 1 hour (60-3600 seconds) to catch anomalies
 - Location frequency set to max 2 visits per month per post office
@@ -2273,22 +2277,27 @@ exercise <- list(
 Created `osm_post_office_dashboard()` in `app/R/visualization_helpers.r` that displays:
 
 **Dashboard Sections**:
+
 1. **Survey Duration Analysis**:
+
    - Average duration across all surveys
    - Minimum duration (fastest completion)
    - Maximum duration (slowest completion)
    - Target: 5 min minimum, 24 hours maximum
 
 2. **Submission Compliance**:
+
    - Count of surveys NOT submitted same day as data collection
    - Count of late submissions (>24 hours after visit date)
    - Color-coded: Green for compliant, Yellow/Red for issues
 
 3. **Visit Frequency Monitoring**:
+
    - Tracks post offices visited too frequently
    - Checks against thresholds: host communities (1x/month), camps (2x/month)
 
 4. **Coverage Analysis**:
+
    - Post office coverage (visits by post office)
    - Geographic coverage (visits by governorate)
    - Monitor activity (surveys by monitor)
@@ -2315,12 +2324,14 @@ visualizations = function(data) {
 **Progress so far**:
 
 1. ✓ **Survey Discovered**:
+
    - Official name: "JORDAN - Informal price monitoring in refugee camps"
    - App display name: "OSM - Informal price monitoring"
    - Survey ID: 5409
    - xlsFormId: 2175
 
 2. ✓ **Initial Data Structure** (1 row, 36 columns):
+
    - `ID01` - Date (2025-10-23)
    - `ID02` - "formal" (market type?)
    - `ID03` - "Azraq_camp" (location)
@@ -2330,6 +2341,7 @@ visualizations = function(data) {
    - 6 more columns (31-36) not yet viewed
 
 3. ⏸️ **Next Steps** (when resumed):
+
    - Identify all 36 column names
    - Determine what each ID column represents
    - Check if `start` column exists
@@ -2389,6 +2401,7 @@ inspect_survey(5421)
 - **Feedback**: `Q6_any_feedback_school`, `Q6_any_feedback_if_yes`
 
 **Survey purpose**: School-based monitoring of date bars distribution
+
 - Storage conditions monitoring
 - Distribution tracking
 - Student feedback collection
@@ -2439,6 +2452,7 @@ saveRDS(all_metadata, "metadata/processed/all_metadata.rds")
 7. ❌ **No proportion checks**: Not applicable to this monitoring type
 
 **Key Decision - Date Column Handling**:
+
 - Survey uses `Q_1_2_visit_date` instead of standard `date` column
 - **Solution**: Rename in `prepare_data` function to ensure compatibility with validation rules
 
@@ -2538,6 +2552,7 @@ exercise <- list(
 ```
 
 **Key decisions**:
+
 - Used `Q1_1_interviewer_name` as filter (allows filtering by interviewer)
 - Set duration bounds to 3 min - 1 hour (180-3600 seconds) for school visits
 - School visit frequency set to max 2 visits per month
@@ -2548,6 +2563,7 @@ exercise <- list(
 Created `osm_date_bards_dashboard()` in `app/R/visualization_helpers.r`:
 
 **Dashboard Sections**:
+
 1. **Survey Duration Analysis**:
    - Average duration across all school visits
    - Minimum duration (fastest completion)
@@ -2734,6 +2750,7 @@ This is **simpler** than Date Bards which required date column renaming.
 #### Step 5: Create Dashboard
 
 Created `osm_healthy_meals_hc_dashboard()` with:
+
 - Duration analysis
 - Submission compliance
 - School visit frequency
@@ -2742,6 +2759,7 @@ Created `osm_healthy_meals_hc_dashboard()` with:
 - Monitor activity breakdown
 
 **Key choice list mappings** (applied learning from Date Bards):
+
 - `school_type` → `"school_type"`
 - `meal_quality` → `"meal_quality"`
 - `cbo_name` → `"cbo"`
@@ -2790,9 +2808,11 @@ exercises <- load_exercises()
 ### Validation Coverage Documentation
 
 For detailed validation requirements and implementation status for both exercises, see:
+
 - **[Validation Coverage Document](VALIDATION_COVERAGE.md)** - Complete mapping of requirements to implementations
 
 **Key highlights**:
+
 - ✅ All survey practice validations implemented (duration, same-day, late submission)
 - ✅ All required visualizations included
 - ✅ Duration parameters updated: 10 min minimum, 24 hours maximum
@@ -2815,12 +2835,14 @@ This exercise represents a **fundamentally different survey type** compared to b
 #### 🆕 New Survey Category: Market Price Data
 
 All previous exercises (Welcome Meals, Helpdesks, Post Offices, School Feeding) are **monitoring surveys** that track:
+
 - Beneficiaries visited
 - Facilities inspected
 - Services delivered
 - Compliance checks
 
 **Market Price Monitoring** tracks:
+
 - Commodity prices across multiple markets
 - Formal vs. informal market comparisons
 - Availability indicators
@@ -2837,6 +2859,7 @@ All previous exercises (Welcome Meals, Helpdesks, Post Offices, School Feeding) 
 | **Market Price** | **284** | **Wide format with patterns** |
 
 **Variable Patterns in Market Price Survey**:
+
 - **Multiple price points** per commodity: `price_01_Milk`, `price_02_Milk`, `price_03_Milk`, etc.
 - **Availability flags**: `bread_01`, `bread_02`, `bread_03`, etc.
 - **Business impact** fields: `business_impact_01`, `business_impact_02`, `business_impact_03`
@@ -2851,12 +2874,14 @@ This results in **366 processed variables** (after XLSForm parsing) vs. typical 
 Unlike beneficiary monitoring where validation patterns are well-established, market price data requires:
 
 1. **Domain-specific validation rules**:
+
    - Price ranges (what's reasonable for each commodity?)
    - Price changes over time (what constitutes an outlier?)
    - Availability patterns (seasonal variations?)
    - Formal vs. informal market comparisons
 
 2. **Specialized visualizations**:
+
    - Price trends over time
    - Commodity-specific dashboards
    - Market type comparisons
@@ -2864,6 +2889,7 @@ Unlike beneficiary monitoring where validation patterns are well-established, ma
    - Availability heat maps
 
 3. **Data structure understanding**:
+
    - How do the `price_01_`, `price_02_`, `price_03_` fields relate?
    - Are these different measurement units, different shops, or different time points?
    - How should they be aggregated?
@@ -2881,6 +2907,7 @@ inspect_survey(5434)
 ```
 
 **Key findings**:
+
 - 444 rows
 - 284 columns
 - Survey category: "Market (for data collection progress only)"
@@ -2889,12 +2916,14 @@ inspect_survey(5434)
 #### Step 2: Identified Unique Structure
 
 **ID columns**:
+
 - `ID01`: Date
 - `ID02`: Market type (formal/informal) 
 - `ID03`: Camp location
 - `ID04`: Field monitor name
 
 **Commodity columns** (examples):
+
 - `Bulgur_packaged`
 - `Powdered_Milk`
 - `price_01_Milk`, `price_02_Milk`, `price_03_Milk`
@@ -2910,6 +2939,7 @@ Added mapping to `metadata_helpers.r`:
 ```
 
 Fixed metadata processing functions to handle XLSForms without label columns:
+
 - Updated `extract_variable_labels()` to create label column if missing
 - Updated `extract_choice_lists()` to create label column if missing
 
@@ -2939,6 +2969,7 @@ prepare_data = function(raw_data) {
 ```
 
 **Minimal validations** (survey practice only):
+
 - Duration check (3-120 minutes)
 - Same-day submission
 - Late submission
@@ -2946,6 +2977,7 @@ prepare_data = function(raw_data) {
 **No commodity-specific validations yet** - waiting for stakeholder requirements.
 
 **Basic visualizations**:
+
 - Survey practice metrics (duration, submission timing)
 - Market overview (type, location, monitor)
 - Data structure note explaining the 366 variables
@@ -2968,6 +3000,7 @@ exercises <- load_exercises()
 **Previous assumption**: All surveys are beneficiary/facility monitoring with similar validation needs.
 
 **Reality**: Different survey types (market price, household surveys, etc.) require:
+
 - Different validation strategies
 - Different visualization approaches  
 - Different data structure considerations
@@ -2977,6 +3010,7 @@ exercises <- load_exercises()
 #### 2. Wide Format Data Requires Special Handling
 
 With 366 variables, challenges include:
+
 - **Column selection**: Which variables matter most for quality monitoring?
 - **Aggregation**: How to summarize across commodity types?
 - **Visualization**: Can't use standard breakdown cards for all 366 variables
@@ -3007,6 +3041,7 @@ Not every exercise needs full implementation immediately.
 4. ⏳ Add domain-specific features based on actual requirements
 
 This is especially important for:
+
 - New survey types without established patterns
 - Complex data structures needing stakeholder input
 - Surveys with specialized domain knowledge requirements
@@ -3016,6 +3051,7 @@ This is especially important for:
 When stakeholder requirements are defined, consider adding:
 
 #### Potential Validations
+
 - Price range checks (min/max by commodity)
 - Price change flags (outlier detection)
 - Availability consistency checks
@@ -3023,6 +3059,7 @@ When stakeholder requirements are defined, consider adding:
 - Required commodity coverage
 
 #### Potential Visualizations  
+
 - **Price Trends**: Line charts showing price changes over time by commodity
 - **Commodity Dashboards**: One dashboard per major commodity group
 - **Market Comparison**: Formal vs. informal price differences
