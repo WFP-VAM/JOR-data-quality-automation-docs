@@ -27,6 +27,8 @@ website:
         href: index.qmd
       - text: "Getting Started"
         menu:
+          - text: "Installation"
+            href: guides/INSTALLATION.html
           - text: "Quick Start"
             href: guides/QUICK_START.html
           - text: "Interactive Discovery"
@@ -61,6 +63,8 @@ website:
         contents:
           - text: "Overview"
             href: index.html
+          - text: "Installation"
+            href: guides/INSTALLATION.html
           - text: "Quick Start Guide"
             href: guides/QUICK_START.html
           - text: "Interactive Discovery"
