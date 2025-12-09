@@ -13,7 +13,7 @@ Download the XLSForm file from SharePoint and place it in:
 metadata/raw/YYYYMMDD/[category]/
 ```
 
-Example: `metadata/raw/20251103/General Food Assistance xls/Welcome Meals.xlsx`
+Example: `metadata/raw/20251201/General Food Assistance xls/WFP - FSOM Q3 2025 - Script.xlsx`
 
 ### 2. Add Survey ID Mapping
 
@@ -23,6 +23,7 @@ Edit `app/R/metadata_helpers.r` and add your mapping in `map_metadata_to_survey_
 filename_mappings <- list(
   "Welcome Meals.xlsx" = "5404",
   "BCM_Helpdesk_mon_260525.xlsx" = "5387",
+  "WFP - FSOM Q3 2025 - Script.xlsx" = "5485",
   "your_survey.xlsx" = "YOUR_SURVEY_ID"  # Add this line
 )
 ```
@@ -290,7 +291,6 @@ GPS coordinates are stored separately from survey metadata and are used for loca
 GPS coordinates are stored in `metadata/raw/GPS coordinates.xlsx` with multiple sheets:
 
 - **HelpDesk** sheet: Contains helpdesk locations with columns:
-
   - `list_name`: Filter identifier (e.g., "helpdesk", "Bread", "Shops")
   - `name`: Location identifier used in survey (e.g., "future_amman", "red_crescent")
   - `label`: Human-readable location name (e.g., "Future Club Huassin", "Jordan Red Crescent")
@@ -314,7 +314,6 @@ This script will:
 2. Parse GPS coordinate strings (format: "lat, lon") into separate `lat` and `lon` columns
 3. Remove rows with invalid coordinates
 4. Save processed .rds files to `metadata/processed/`:
-
    - `gps_HelpDesk.rds` - Helpdesk locations (17 locations)
    - `gps_POs.rds` - Post office locations (92 locations)
    - `all_gps_coordinates.rds` - Combined file with all sheets
@@ -394,7 +393,6 @@ if (!is.null(gps_data)) {
 1. **`list_name_filter` must match**: The `list_name_filter` parameter must match the `list_name` values in your GPS coordinates file. For example, if your GPS file has `list_name = "helpdesk"`, use `list_name_filter = "helpdesk"`.
 
 2. **Location matching**: The validation uses a robust multi-strategy matching approach (in order of preference):
-
    - **Exact match by `name`** (most common - numeric codes like "1", "2", "3" for post offices)
    - **Exact match by `label`** (Arabic or English names)
    - **Case-insensitive exact match** by `name` or `label`
@@ -403,7 +401,6 @@ if (!is.null(gps_data)) {
    - Matching is optimized to handle common data variations and formatting differences
 
 3. **GPS column formats**: The validation automatically handles:
-
    - `_geolocation` column: List/vector format `c(lat, lon)` or string `"lat lon"`
    - `gps` column: String format `"lat lon alt accuracy"`
    - Separate columns: `latitude`/`longitude` or `lat`/`lon`
@@ -411,7 +408,6 @@ if (!is.null(gps_data)) {
 4. **Keep GPS columns**: Don't remove `_geolocation` in `prepare_data` - it's needed for validation!
 
 5. **Distance column**: The validation automatically adds a `gps_distance_to_target_m` column showing the distance in meters between entered GPS coordinates and the expected location. This column:
-
    - Appears in the affirm validation report
    - Is included in CSV exports (add `"gps_distance_to_target_m"` to `affirm.id_cols`)
    - Shows `NA` for records without GPS data or when location is not found
@@ -426,7 +422,6 @@ When GPS coordinates need to be updated or corrected:
 3. **Restart app**: Restart the Shiny app to load new GPS coordinates
 
 **Adding new locations**:
-
 - Add rows to the appropriate sheet (HelpDesk, POs, etc.)
 - Ensure `list_name` matches what you'll use in `list_name_filter`
 - Format GPS coordinates as "lat, lon" (e.g., "32.0, 35.9")
@@ -439,9 +434,9 @@ See these complete working examples:
 - **BCM Helpdesk Validation** (`app/exercises/bcm_helpdesk_validation.r`): Uses HelpDesk GPS coordinates with `list_name_filter = "helpdesk"`
 - **BCM Post Office Validation** (`app/exercises/bcm_post_office_validation.r`): Uses Post Office GPS coordinates with `list_name_filter = "post_name"`
 - **OSM Post Office Validation** (`app/exercises/osm_post_office.r`): Uses Post Office GPS coordinates with `list_name_filter = "post_name"`
+- **FSOM 2025 Q3** (`app/exercises/fsom.r`): Non-GPS example that derives `visit_date` from `starttime` and uses standard metadata
 
-All examples demonstrate:
-
+The GPS examples demonstrate:
 - Processing GPS coordinates
 - Keeping `_geolocation` column in `prepare_data`
 - Loading GPS data in `run_validations`
