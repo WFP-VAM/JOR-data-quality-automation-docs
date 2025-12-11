@@ -2707,7 +2707,7 @@ print(result[, c('surveyID', 'surveyName', 'xlsFormId')])
 
 **Results**:
 - **Survey ID 5422**: "SF - OSM Healthy Meals Distribution HC" ← **This one (Host Community)**
-- Survey ID 5423: "SF - OSM Healthy Meals Distribution in Camps" ← Skip this one
+- Survey ID 5423: "SF - OSM Healthy Meals Distribution in Camps" (camps variant)
 - Survey ID 5404: "BCM - Welcome Meals - 2025" ← Different exercise
 
 #### Step 2: Inspect Survey Structure
@@ -2731,7 +2731,9 @@ inspect_survey(5422)
 
 #### Step 3: Process Metadata (Streamlined)
 
-**Located XLSForm**: `metadata/raw/20251103/School feeding xls/hm_schools_hc_20250320.xlsx`
+**Located XLSForm**:
+- Host communities: `metadata/raw/20251103/School feeding xls/hm_schools_hc_20250320.xlsx` (ID 5422)
+- Camps: `metadata/raw/20251201/School feeding xls/hm_schools_hc_20250819_camps.xlsx` (ID 5423)
 
 **Quick check of choice lists**:
 ```r
@@ -2748,17 +2750,25 @@ survey <- read_excel('...', sheet = 'survey')
 **Process metadata** (standard workflow):
 ```r
 # 1. Add mapping
-# In metadata_helpers.r: "hm_schools_hc_20250320.xlsx" = "5422"
+# In metadata_helpers.r:
+#   "hm_schools_hc_20250320.xlsx" = "5422"
+#   "hm_schools_hc_20250819_camps.xlsx" = "5423"
 
-# 2. Process
+# 2. Process (host)
 source("app/R/metadata_helpers.r")
 xlsform <- load_xlsform('metadata/raw/.../hm_schools_hc_20250320.xlsx')
 metadata <- process_xlsform(xlsform)
 saveRDS(metadata, 'metadata/processed/5422_metadata.rds')
 
+# 2b. Process (camps)
+xlsform_camps <- load_xlsform('metadata/raw/.../hm_schools_hc_20250819_camps.xlsx')
+metadata_camps <- process_xlsform(xlsform_camps)
+saveRDS(metadata_camps, 'metadata/processed/5423_metadata.rds')
+
 # 3. Update combined file
 all_metadata <- readRDS('metadata/processed/all_metadata.rds')
 all_metadata[['5422']] <- metadata
+all_metadata[['5423']] <- metadata_camps
 saveRDS(all_metadata, 'metadata/processed/all_metadata.rds')
 ```
 
