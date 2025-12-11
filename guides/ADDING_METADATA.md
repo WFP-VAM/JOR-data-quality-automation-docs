@@ -23,6 +23,8 @@ Edit `app/R/metadata_helpers.r` and add your mapping in `map_metadata_to_survey_
 filename_mappings <- list(
   "Welcome Meals.xlsx" = "5404",
   "BCM_Helpdesk_mon_260525.xlsx" = "5387",
+  "hm_schools_hc_20250320.xlsx" = "5422",
+  "hm_schools_hc_20250819_camps.xlsx" = "5423",
   "WFP - FSOM Q3 2025 - Script.xlsx" = "5485",
   "your_survey.xlsx" = "YOUR_SURVEY_ID"  # Add this line
 )
