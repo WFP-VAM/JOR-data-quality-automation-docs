@@ -24,6 +24,12 @@ This directory contains historical documentation from the development and refact
 - Dashboard component development
 - UI/UX decisions
 
+**[AUTOMATIC_DATE_FIELDS.md](AUTOMATIC_DATE_FIELDS.md)**
+
+- Automatic date field extraction implementation
+- Migration from manual to automatic date fields
+- Prevents future dates in analysis
+
 ## 🎯 Purpose
 
 These documents serve as:

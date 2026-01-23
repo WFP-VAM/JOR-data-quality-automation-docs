@@ -84,3 +84,7 @@ pip install "git+https://github.com/WFP-VAM/DataBridgesKnots.git"
 
 With the R environment restored and the Python dependencies updated you will now be able to run the application.
 
+
+
+
+
