@@ -255,33 +255,51 @@ Implement the `prepare_data` function to clean and transform raw data:
 4. Calculate derived columns
 5. Handle missing values
 
-#### Handling Missing Date Column
+#### Using Automatic Date Fields (Recommended)
 
-Some surveys don't include a `date` column but validation rules require it. If your survey only has `_submission_time`, derive the date column:
+**⚠️ Important Change**: By default, the dashboard now uses **automatic survey start time** instead of manually entered date fields. This prevents future dates from appearing in the data (which can happen when enumerators accidentally enter incorrect dates).
+
+**Default behavior** (recommended for all exercises):
 
 ```r
 prepare_data = function(raw_data) {
-  data <- prepare_survey_data(raw_data)
-  
-  # Derive date column from _submission_time if date column doesn't exist
-  if (!"date" %in% names(data) && "_submission_time" %in% names(data)) {
-    data <- data |>
-      dplyr::mutate(
-        date = as.Date(substr(.data[["_submission_time"]], 1, 10))
-      )
-  }
+  # Use automatic date field from 'start' column
+  # This prevents future dates from being included
+  data <- prepare_survey_data(raw_data, use_auto_date_field = TRUE, auto_date_source = "start")
   
   data
 }
 ```
 
-**When to use this**:
+**What this does**:
+- Creates a `date` column from the survey's `start` field (when the survey was started)
+- Falls back to `_submission_time` if `start` is not available
+- Prevents manually entered dates with typos or future dates from affecting analysis
 
-- Your survey doesn't have a `date` column
-- You're using `same_day_submission_rule()` or `late_submission_rule()`
-- Your survey has `_submission_time` column
+**When to use manual date fields** (rare):
 
-**Note**: The `substr(..., 1, 10)` extracts the date portion (YYYY-MM-DD) from the ISO timestamp.
+If you specifically need to use a manually entered date field instead of the automatic one:
+
+```r
+prepare_data = function(raw_data) {
+  # Use manual date field (not recommended)
+  data <- prepare_survey_data(raw_data, use_auto_date_field = FALSE, date_columns = "manual_date_field")
+  
+  data
+}
+```
+
+**Custom date column name**:
+
+If your survey uses a different automatic field name (e.g., `starttime` instead of `start`):
+
+```r
+prepare_data = function(raw_data) {
+  data <- prepare_survey_data(raw_data, use_auto_date_field = TRUE, auto_date_source = "starttime")
+  
+  data
+}
+```
 
 ### Step 6: Define Validation Function with affirm
 
@@ -681,6 +699,98 @@ phone_uniqueness_rule(
   date_column = "date"                        # Date column for grouping
 )
 ```
+
+### invalid_value_check_rule()
+
+Validates that specified columns do not contain invalid values (e.g., "NA", "N/A", "Not applicable").
+
+```r
+invalid_value_check_rule(
+  columns = c("Q3_1_b", "Q4_1_a"),           # Columns to check
+  invalid_values = c("NA", "N/A", "na", "n/a", "Not applicable", "not applicable", "No", "NO", "no"),
+  description_text = "Fields cannot be NA or Not applicable"  # Optional custom description
+)
+```
+
+### conditional_section_rule()
+
+Validates that a section (group of fields) appears/has data when a trigger condition is met.
+
+```r
+conditional_section_rule(
+  trigger_column = "Q110",                    # Column that triggers the section
+  trigger_value = 2,                         # Value that triggers (numeric or character)
+  section_columns = c("Q201", "Q202", "Q203"), # Columns that should have data when triggered
+  section_name = "Section 2"                  # Name for error messages
+)
+```
+
+### name_consistency_rule()
+
+Validates that participant names match between baseline and endline surveys (useful for longitudinal studies).
+
+```r
+name_consistency_rule(
+  name_column = "participant_name",           # Column containing participant names
+  id_column = "ID02",                        # Column used to match records
+  baseline_data = baseline_survey_data,      # Baseline survey data frame
+  description_text = "Endline names should match baseline"  # Optional custom description
+)
+```
+
+**Note**: This rule requires baseline data to be available. In your exercise's `fetch_data` function, you can fetch both surveys and store baseline data as an attribute:
+
+```r
+fetch_data = function(client) {
+  endline_data <- databridges_survey_fetch(client, survey_id = 5493L, access_type = "full")
+  baseline_data <- tryCatch({
+    databridges_survey_fetch(client, survey_id = 5492L, access_type = "full")
+  }, error = function(e) {
+    warning("Could not fetch baseline: ", e$message)
+    NULL
+  })
+  
+  if (!is.null(baseline_data)) {
+    attr(endline_data, "baseline_data") <- baseline_data
+  }
+  
+  endline_data
+}
+```
+
+Then in `prepare_data`, preserve the baseline data:
+
+```r
+prepare_data = function(raw_data) {
+  data <- prepare_survey_data(raw_data, ...)
+  baseline_data <- attr(raw_data, "baseline_data")
+  if (!is.null(baseline_data)) {
+    attr(data, "baseline_data") <- baseline_data
+  }
+  data
+}
+```
+
+### value_close_to_dropdown_rule()
+
+Validates that a text value is not "close to" (similar to) any option in a dropdown/choice list. This is useful for detecting typos or near-matches that should be flagged.
+
+```r
+value_close_to_dropdown_rule(
+  text_column = "Q3_1_b",                    # Column containing text values to check
+  dropdown_column = "Q3_1",                 # Column containing selected dropdown option
+  metadata = metadata,                       # Optional metadata object with choice lists
+  choice_list_name = "location_list",        # Optional choice list name in metadata
+  similarity_threshold = 0.7,               # Minimum similarity (0-1, default 0.7)
+  description_text = "Q3.1.b should not be close to any option in Q3.1 dropdown"  # Optional description
+)
+```
+
+**How it works**:
+- Compares text values to dropdown options using string similarity
+- Flags values that are similar enough to be typos or near-matches
+- Can use metadata choice lists or unique values from the dropdown column
+- Similarity calculation includes exact matches, substring matches, and character overlap
 
 ### location_visit_frequency_rule()
 
@@ -1092,6 +1202,103 @@ Notes:
 - Metadata file: `metadata/raw/20251201/General Food Assistance xls/WFP - FSOM Q3 2025 - Script.xlsx`
 - Mapping: `map_metadata_to_survey_ids()` includes `"WFP - FSOM Q3 2025 - Script.xlsx" = "5485"`
 - No GPS validation for FSOM; only standard data quality checks
+
+**Complete Example: SBCC - GFA - Caregivers (Baseline/Endline Comparison)**
+
+See `app/exercises/sbcc_caregivers.r` for a complete working example that compares baseline and endline surveys:
+
+```r
+exercise <- list(
+  id = "5493",  # Endline survey ID (primary)
+  name = "SBCC - GFA - Caregivers",
+  
+  fetch_data = function(client) {
+    # Fetch both endline and baseline surveys
+    endline_data <- databridges_survey_fetch(client, survey_id = 5493L, access_type = "full")
+    baseline_data <- tryCatch({
+      databridges_survey_fetch(client, survey_id = 5492L, access_type = "full")
+    }, error = function(e) {
+      warning("Could not fetch baseline: ", e$message)
+      NULL
+    })
+    
+    if (!is.null(baseline_data)) {
+      attr(endline_data, "baseline_data") <- baseline_data
+    }
+    
+    endline_data
+  },
+  
+  prepare_data = function(raw_data) {
+    data <- prepare_survey_data(raw_data, ...)
+    
+    # Preserve baseline data for validation
+    baseline_data <- attr(raw_data, "baseline_data")
+    if (!is.null(baseline_data)) {
+      baseline_prepared <- prepare_survey_data(baseline_data, ...)
+      attr(data, "baseline_data") <- baseline_prepared
+    }
+    
+    data
+  },
+  
+  run_validations = function(data) {
+    baseline_data <- attr(data, "baseline_data")
+    
+    result <- data |>
+      duration_check_rule()(id = 1, data_name = exercise_name) |>
+      # ... other validations ...
+    
+    # Name consistency check: Endline names should match baseline
+    if (!is.null(baseline_data)) {
+      result <- result |>
+        name_consistency_rule(
+          name_column = "participant_name",
+          id_column = "ID02",
+          baseline_data = baseline_data,
+          description_text = "Endline names should match baseline"
+        )(id = 8, data_name = exercise_name)
+    }
+    
+    result |> dplyr::select(-dplyr::starts_with("."))
+  }
+)
+```
+
+**Complete Example: RPME Exercises (TBD Survey IDs)**
+
+Some exercises may have survey IDs that are not yet available in the API. In these cases, create placeholder exercises with clear TODOs:
+
+See `app/exercises/rpme_contracted_shops.r` and `app/exercises/rpme_bread_selling_points.r` for examples:
+
+```r
+exercise <- list(
+  id = "TBD",  # TODO: Replace with actual survey ID when available
+  name = "RPME - Contracted Shops",
+  
+  fetch_data = function(client) {
+    # TODO: Replace TBD with actual survey ID when available
+    stop("Survey ID not yet configured. Please update the exercise with the correct survey ID.")
+    
+    # Uncomment when survey ID is available:
+    # with_error_handling(
+    #   fetch_fn = function() {
+    #     databridges_survey_fetch(client, survey_id = TBDL, access_type = "full")
+    #   },
+    #   source_name = "RPME - Contracted Shops (Survey TBD)"
+    # )
+  },
+  
+  # ... rest of exercise definition with validations ...
+)
+```
+
+**Notes for TBD exercises**:
+- Use `id = "TBD"` and include clear TODO comments
+- Implement all validations based on requirements
+- Use placeholder column names that can be updated when survey ID is found
+- Include `stop()` in `fetch_data` to prevent accidental execution
+- Document all TODOs clearly for future developers
 
 **Troubleshooting**:
 
@@ -1789,14 +1996,34 @@ options('affirm.id_cols' = c(
 
 **Issue**: Some surveys use different column names for visit/collection dates (e.g., `Q_1_2_visit_date`, `visit_date`, `collection_date`) instead of the standard `date` column expected by validation rules.
 
-**Solution**: Rename the date column in your `prepare_data` function:
+**✅ Recommended Solution**: Use the automatic date field (which extracts from `start` or `_submission_time`):
 
 ```r
 prepare_data = function(raw_data) {
-  # Process with the actual date column name
+  # Use automatic date field - this is now the recommended approach
+  # No need to rename manual date fields
+  data <- prepare_survey_data(raw_data, use_auto_date_field = TRUE, auto_date_source = "start")
+  
+  data
+}
+```
+
+**Why automatic date fields are better**:
+
+- Prevents future dates from appearing due to manual entry errors
+- Uses actual survey start time, which is more accurate for filtering by time periods (e.g., Q4 analysis)
+- Validation rules (`same_day_submission_rule`, `late_submission_rule`, `location_visit_frequency_rule`) work with the `date` column
+- CSV exports and visualizations use `date` for time-based analysis
+
+**Legacy approach** (if you must use manual date fields):
+
+```r
+prepare_data = function(raw_data) {
+  # Not recommended - manual date fields can have data entry errors
   data <- prepare_survey_data(
     raw_data, 
-    date_columns = c("Q_1_2_visit_date")  # Or whatever the actual column is
+    use_auto_date_field = FALSE,
+    date_columns = c("Q_1_2_visit_date")
   )
   
   # Rename to 'date' for consistency with validation rules
@@ -1808,52 +2035,44 @@ prepare_data = function(raw_data) {
 }
 ```
 
-**Why this matters**:
+**All current exercises now use automatic date fields**:
 
-- Validation rules (`same_day_submission_rule`, `late_submission_rule`, `location_visit_frequency_rule`) expect a column named `date`
-- CSV exports reference the `date` column
-- Visualizations use `date` for time-based analysis
-
-**Example exercises with non-standard date columns**:
-
-- `osm_date_bards.r` - Uses `Q_1_2_visit_date`, renamed to `date` in prepare_data
-
-**Example exercises with standard date column**:
-
-- `osm_healthy_meals_hc.r` - Uses standard `date` column, no renaming needed
+- All exercises have been updated to use `start` field for date extraction
+- This ensures consistent behavior across all surveys
 
 ### Validation Fails: "date column not found"
 
 **Issue**: Validation rules fail because the survey doesn't have a `date` column, but rules like `same_day_submission_rule()` and `late_submission_rule()` require it.
 
-**Solution**: Derive the `date` column from `_submission_time` in your `prepare_data` function:
+**✅ Solution**: Use the automatic date field functionality (default behavior):
 
 ```r
 prepare_data = function(raw_data) {
-  data <- prepare_survey_data(raw_data)
-  
-  # Derive date column from _submission_time if date column doesn't exist
-  if (!"date" %in% names(data) && "_submission_time" %in% names(data)) {
-    data <- data |>
-      dplyr::mutate(
-        date = as.Date(substr(.data[["_submission_time"]], 1, 10))
-      )
-  }
+  # Automatically creates 'date' column from 'start' or '_submission_time'
+  data <- prepare_survey_data(raw_data, use_auto_date_field = TRUE, auto_date_source = "start")
   
   data
 }
 ```
 
+**What this does**:
+
+- Automatically creates a `date` column from the survey's `start` field
+- Falls back to `_submission_time` if `start` is not available
+- No manual date extraction needed
+- Prevents future dates from manual entry errors
+
 **Checklist**:
 
-- Check if your survey has a `date` column: `"date" %in% names(data)`
-- If not, derive it from `_submission_time` in `prepare_data` (see above)
-- Ensure the derived date column is created before validations run
-- The `substr(..., 1, 10)` extracts the date portion (YYYY-MM-DD) from the ISO timestamp
+- ✅ Use `use_auto_date_field = TRUE` in `prepare_survey_data()` (this is the default)
+- ✅ Specify `auto_date_source = "start"` to use the survey start time
+- ✅ The `date` column will be automatically created before validations run
+- ✅ All validation rules will work with the automatic date column
 
-**Example exercises that derive date from submission time**:
+**All exercises now use automatic date fields**:
 
-- `gfa_sbcc_endline_women.r` - Derives `date` from `_submission_time`
+- All current exercises have been updated to use this approach
+- This is now the recommended pattern for all new exercises
 
 ### Choice List Names Don't Match Column Names
 
