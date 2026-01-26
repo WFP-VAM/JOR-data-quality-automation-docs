@@ -24,6 +24,18 @@ This directory contains historical documentation from the development and refact
 - Dashboard component development
 - UI/UX decisions
 
+**[AUTOMATIC_DATE_FIELDS.md](AUTOMATIC_DATE_FIELDS.md)**
+
+- Automatic date field extraction implementation
+- Migration from manual to automatic date fields
+- Prevents future dates in analysis
+
+**[BCM_HELPDESK_ISSUE_RESOLUTION_FIX.md](BCM_HELPDESK_ISSUE_RESOLUTION_FIX.md)**
+
+- Fix for BCM Helpdesk "Issue Resolved" metric showing 0%
+- Enhanced satisfaction_metric_card() to support text responses
+- Flexible positive value configuration
+
 ## 🎯 Purpose
 
 These documents serve as:
