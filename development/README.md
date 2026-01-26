@@ -36,6 +36,13 @@ This directory contains historical documentation from the development and refact
 - Enhanced satisfaction_metric_card() to support text responses
 - Flexible positive value configuration
 
+**[VALIDATION_FIELDS_IN_EXPORT.md](VALIDATION_FIELDS_IN_EXPORT.md)**
+
+- Show calculated validation fields in CSV exports
+- Helper columns with `.` prefix (e.g., `.hours_delay`, `.row_na_count`)
+- Make validation failures transparent and actionable
+- Implemented across all 13 exercises
+
 ## 🎯 Purpose
 
 These documents serve as:
