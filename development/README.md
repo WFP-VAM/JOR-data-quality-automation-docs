@@ -43,6 +43,13 @@ This directory contains historical documentation from the development and refact
 - Make validation failures transparent and actionable
 - Implemented across all 13 exercises
 
+**[READABLE_DATE_FORMATTING.md](READABLE_DATE_FORMATTING.md)**
+
+- Readable datetime information via helper columns
+- Helper columns (`.submission_datetime`, `.visit_end`) are already formatted
+- Use helper columns instead of original ISO 8601 columns
+- Available in all exercises with datetime validations
+
 ## 🎯 Purpose
 
 These documents serve as:
