@@ -102,6 +102,8 @@ website:
             href: development/DATA_QUALITY_RULES.html
           - text: "Visualization Feature"
             href: development/VISUALIZATION_FEATURE.html
+          - text: "API Token Auto-Refresh"
+            href: development/API_TOKEN_AUTO_REFRESH.html
           - text: "Link Validation Report"
             href: development/LINK_VALIDATION_REPORT.html
 

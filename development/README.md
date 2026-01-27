@@ -50,6 +50,13 @@ This directory contains historical documentation from the development and refact
 - Use helper columns instead of original ISO 8601 columns
 - Available in all exercises with datetime validations
 
+**[API_TOKEN_AUTO_REFRESH.md](API_TOKEN_AUTO_REFRESH.md)**
+
+- Automatic authentication token refresh for WFP Data Bridges API
+- Resolves intermittent 401 Unauthorized errors
+- Self-healing system that eliminates need for app restarts
+- Transparent operation across all 13 exercises
+
 ## 🎯 Purpose
 
 These documents serve as:
