@@ -42,7 +42,7 @@ All 13 exercise files were updated to use automatic date fields:
 | 5405 | Helpdesk validation OSM 2025 | Manual `date` field | Automatic `start` |
 | 5406 | OSM - Post Office Validation | Manual `date` field | Automatic `start` |
 | 5407 | BCM - Post Office Validation | Manual `date` field | Automatic `start` |
-| 5421 | OSM Date Bards Distribution | Manual `Q_1_2_visit_date` | Automatic `start` |
+| 5421 | OSM Date Bars Distribution | Manual `Q_1_2_visit_date` | Automatic `start` |
 | 5422 | OSM Healthy Meals HC | Manual `date` field | Automatic `start` |
 | 5423 | OSM Healthy Meals Camps | Manual `date` field | Automatic `start` |
 | 5424 | OSM Kitchen Check List | Manual `date` field | Automatic `start` |
@@ -264,7 +264,7 @@ None. All changes are additive with sensible defaults.
 - `app/exercises/bcm_welcome_meals.r`
 - `app/exercises/bcm_post_office_validation.r`
 - `app/exercises/osm_post_office.r`
-- `app/exercises/osm_date_bards.r`
+- `app/exercises/osm_date_bars.r`
 - `app/exercises/osm_healthy_meals_camps.r`
 - `app/exercises/osm_healthy_meals_hc.r`
 - `app/exercises/osm_kitchen_checklist.r`

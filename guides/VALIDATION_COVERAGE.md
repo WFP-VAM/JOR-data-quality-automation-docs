@@ -6,7 +6,7 @@ This document maps the validation requirements to the implemented validation rul
 
 **Tool name in MoDA**: `DB_Schools_25_camps_community_20250320`  
 **Survey ID**: 5421  
-**Exercise file**: `app/exercises/osm_date_bards.r`
+**Exercise file**: `app/exercises/osm_date_bars.r`
 
 ### Part 1: Data Quality Validations
 
@@ -142,7 +142,7 @@ This document maps the validation requirements to the implemented validation rul
 1. **Duration checks** - Min/max survey time ✅ **Updated to 10 min - 24 hours**
 2. **Same-day submission** - Flags surveys not submitted on collection day
 3. **Late submission** - Flags surveys submitted >24 hours late
-4. **Location visit frequency** - Prevents duplicate school/kitchen visits (Date Bards, Healthy Meals HC)
+4. **Location visit frequency** - Prevents duplicate school/kitchen visits (Date Bars, Healthy Meals HC)
 5. **Missing data** - General completeness check
 
 ### 📊 Visualizations Implemented
@@ -187,7 +187,7 @@ This allows manual review of flagged records (2.11, 2.12, 2.13, 3.4, etc.).
 
 ## Exercise Comparison
 
-| Aspect | Date Bards (5421) | Healthy Meals HC (5422) | Kitchen Check List (5424) |
+| Aspect | Date Bars (5421) | Healthy Meals HC (5422) | Kitchen Check List (5424) |
 |--------|-------------------|-------------------------|---------------------------|
 | **Date column** | Q_1_2_visit_date (renamed) | date (standard) ✅ | date (standard) ✅ |
 | **Rows** | 65 | 45 | 29 |
@@ -206,7 +206,7 @@ This allows manual review of flagged records (2.11, 2.12, 2.13, 3.4, etc.).
 
 All duration checks have been updated to match requirements:
 
-**Date Bars** (`osm_date_bards.r`):
+**Date Bars** (`osm_date_bars.r`):
 ```r
 ✅ duration_check_rule(min_seconds = 600, max_seconds = 86400)  # 10 min to 24 hours
 ```
@@ -286,7 +286,7 @@ To verify all validations are working:
 
 The app now has **9 total exercises**, with **4 School Feeding exercises**:
 
-1. SF - OSM Date Bards Distribution (5421)
+1. SF - OSM Date Bars Distribution (5421)
 2. SF - OSM Healthy Meals Distribution HC (5422)
 3. SF - OSM Kitchen Check List (5424)
 4. SF - OSM Healthy Meals Distribution in Camps (5423) - *Not yet added*

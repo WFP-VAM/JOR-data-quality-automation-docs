@@ -82,7 +82,7 @@ Each exercise file was updated to:
 7. `osm_kitchen_checklist.r`
 8. `osm_healthy_meals_hc.r`
 9. `osm_healthy_meals_camps.r`
-10. `osm_date_bards.r`
+10. `osm_date_bars.r`
 11. `osm_informal_market_price.r`
 12. `gfa_sbcc_endline_women.r`
 13. `fsom.r`

@@ -2116,7 +2116,7 @@ list_name <- gsub("select_one |select_multiple ", "", question$type)
 # Result: "class_monitoed"
 ```
 
-**Example from Date Bards exercise**:
+**Example from Date Bars exercise**:
 - `Q_2_1_boys_girls_school` (School type) → use `choice_list_name = "class_monitoed"`
 - `Q_2_2_age_group` (School level) → use `choice_list_name = "level"`
 - `Q_1_3_governorate` (Governorate) → use `choice_list_name = "governorate"`
@@ -2620,7 +2620,7 @@ names(current_survey_data)  # Would show all columns
 
 ---
 
-### Example 3: SF - OSM Date Bards Distribution
+### Example 3: SF - OSM Date Bars Distribution
 
 **Status**: ✅ Complete
 
@@ -2636,7 +2636,7 @@ search_surveys("date")
 ```
 
 **Result**:
-- Survey found: "SF - OSM Date Bards Distribution"
+- Survey found: "SF - OSM Date Bars Distribution"
 - **Survey ID**: 5421
 - **xlsFormId**: 2210
 - **baseXlsFormId**: 2197
@@ -2734,12 +2734,12 @@ options('affirm.id_cols' = c(
 
 #### Step 5: Create Exercise File
 
-Created `app/exercises/osm_date_bards.r`:
+Created `app/exercises/osm_date_bars.r`:
 
 ```r
 exercise <- list(
   id = "5421",
-  name = "SF - OSM Date Bards Distribution",
+  name = "SF - OSM Date Bars Distribution",
   type = "survey",
   description = "School Feeding - OSM date bars distribution monitoring and data quality checks",
   
@@ -2755,7 +2755,7 @@ exercise <- list(
           access_type = "full"
         )
       },
-      source_name = "SF - OSM Date Bards Distribution (Survey 5421)"
+      source_name = "SF - OSM Date Bars Distribution (Survey 5421)"
     )
   },
   
@@ -2781,7 +2781,7 @@ exercise <- list(
       NULL
     })
     
-    osm_date_bards_dashboard(data, metadata = metadata)
+    osm_date_bars_dashboard(data, metadata = metadata)
   },
   
   run_validations = function(data) {
@@ -2793,7 +2793,7 @@ exercise <- list(
       "_submission_time", "start", "end", "_duration"
     ))
     
-    exercise_name <- "SF - OSM Date Bards Distribution"
+    exercise_name <- "SF - OSM Date Bars Distribution"
     
     result <- data |>
       duration_check_rule(min_seconds = 180, max_seconds = 3600)(id = 1, data_name = exercise_name) |>
@@ -2819,7 +2819,7 @@ exercise <- list(
 
 #### Step 5b: Create Custom Visualization Dashboard
 
-Created `osm_date_bards_dashboard()` in `app/R/visualization_helpers.r`:
+Created `osm_date_bars_dashboard()` in `app/R/visualization_helpers.r`:
 
 **Dashboard Sections**:
 1. **Survey Duration Analysis**:
@@ -2861,7 +2861,7 @@ source('app/R/validation_helpers.r')
 source('app/R/validation_rules.r')
 source('app/R/metadata_helpers.r')
 source('app/R/visualization_helpers.r')
-source('app/exercises/osm_date_bards.r')
+source('app/exercises/osm_date_bars.r')
 # Result: Exercise loaded successfully
 ```
 
@@ -2869,7 +2869,7 @@ source('app/exercises/osm_date_bards.r')
 ```r
 source('app/R/exercise_registry.r')
 exercises <- load_exercises()
-# Result: 7 exercises total, Date Bards found with ID 5421
+# Result: 7 exercises total, Date Bars found with ID 5421
 ```
 
 3. ✅ **Metadata loads**:
@@ -2890,7 +2890,7 @@ Added troubleshooting section for surveys that use different date column names (
 
 ---
 
-### Key Learnings from Date Bards Exercise
+### Key Learnings from Date Bars Exercise
 
 1. **Non-standard date columns**: Some surveys use different date column names. Always check and rename to `date` in `prepare_data` for validation compatibility.
 
@@ -2938,7 +2938,7 @@ inspect_survey(5422)
 **Results**:
 - **Rows**: 45
 - **Columns**: 69
-- ✅ **Standard `date` column** (no renaming needed - simpler than Date Bards!)
+- ✅ **Standard `date` column** (no renaming needed - simpler than Date Bars!)
 
 **Key columns**:
 - **Filter options**: `monitor_name` (11 unique), `cbo_name` (10 unique), `school_name` (45 unique)
@@ -3000,7 +3000,7 @@ Created `app/exercises/osm_healthy_meals_hc.r`:
 **Key decisions**:
 - ✅ **Standard `date` column** - No renaming needed in `prepare_data`
 - Used `monitor_name` as filter (11 field monitors)
-- Same validation strategy as Date Bards
+- Same validation strategy as Date Bars
 - Location column: `school_name` for visit frequency check
 - CSV exports include: school_name, date, monitor_name, cbo_name, school_type, monitoring type, timing columns
 
@@ -3013,7 +3013,7 @@ prepare_data = function(raw_data) {
 }
 ```
 
-This is **simpler** than Date Bards which required date column renaming.
+This is **simpler** than Date Bars which required date column renaming.
 
 #### Step 5: Create Dashboard
 
@@ -3025,7 +3025,7 @@ Created `osm_healthy_meals_hc_dashboard()` with:
 - CBO activity breakdown
 - Monitor activity breakdown
 
-**Key choice list mappings** (applied learning from Date Bards):
+**Key choice list mappings** (applied learning from Date Bars):
 - `school_type` → `"school_type"`
 - `meal_quality` → `"meal_quality"`
 - `cbo_name` → `"cbo"`
@@ -3049,16 +3049,16 @@ exercises <- load_exercises()
 
 2. **Similar surveys require careful identification**: Multiple related surveys may exist (HC vs. Camps). Always verify survey ID carefully.
 
-3. **Workflow is now streamlined**: Following the established pattern from Date Bards made this exercise much faster:
+3. **Workflow is now streamlined**: Following the established pattern from Date Bars made this exercise much faster:
    - Discover → Inspect → Check choice lists → Process metadata → Create exercise → Create dashboard → Test
 
-4. **Choice list names first**: Learning from Date Bards, we checked XLSForm choice list names **before** creating the dashboard, avoiding the codes-instead-of-labels issue.
+4. **Choice list names first**: Learning from Date Bars, we checked XLSForm choice list names **before** creating the dashboard, avoiding the codes-instead-of-labels issue.
 
 5. **Code reusability**: School feeding dashboards share similar structure (duration, compliance, frequency, coverage), making it easy to adapt existing dashboard code.
 
-### Comparison: Date Bards vs. Healthy Meals HC
+### Comparison: Date Bars vs. Healthy Meals HC
 
-| Aspect | Date Bards (5421) | Healthy Meals HC (5422) |
+| Aspect | Date Bars (5421) | Healthy Meals HC (5422) |
 |--------|-------------------|-------------------------|
 | **Date column** | `Q_1_2_visit_date` (renamed to `date`) | `date` (standard) ✅ |
 | **Rows** | 65 | 45 |
@@ -3354,7 +3354,7 @@ This example highlights the need for:
 |------------|----------|-----------------|-----------|---------------------|
 | **Facility Monitoring** | Helpdesk, Post Office, Kitchen | 40-80 | Compliance, observations | Completeness, frequency, facilities |
 | **Beneficiary Monitoring** | Welcome Meals | 40-60 | Service delivery, satisfaction | Coverage, timeliness, demographics |
-| **School Feeding** | Date Bards, Healthy Meals | 70-100 | Meal distribution, quality | Duration, frequency, school tracking |
+| **School Feeding** | Date Bars, Healthy Meals | 70-100 | Meal distribution, quality | Duration, frequency, school tracking |
 | **Market Price** | Informal Price Monitoring | 280+ | Commodity prices, availability | Price ranges, availability patterns, market comparisons |
 
 Each type requires **tailored validation and visualization approaches**.
