@@ -156,14 +156,14 @@ Comprehensive guides for adding exercises, working with metadata, and understand
 
 - [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html) - Complete reference
 - [Adding Metadata](guides/ADDING_METADATA.html) - XLSForm integration
-- [Validation Coverage](VALIDATION_COVERAGE.html) - Implementation status
+- [Validation Coverage](guides/VALIDATION_COVERAGE.html) - Implementation status
 
 ### Examples
 Real-world examples showing complete implementations:
 
 - [BCM Welcome Meals](examples/BCM_WELCOME_MEALS.html)
-- [BCM Helpdesk](adding_bcm_helpdesk.html)
-- [BCM Post Office Validation](adding_bcm_post_office_validation.html)
+- [BCM Helpdesk](examples/adding_bcm_helpdesk.html)
+- [BCM Post Office Validation](examples/adding_bcm_post_office_validation.html)
 
 ### Development Notes
 Internal development documentation for understanding implementation decisions and architecture changes.
@@ -210,7 +210,7 @@ Internal development documentation for understanding implementation decisions an
 | Learn survey discovery | [Interactive Discovery](guides/INTERACTIVE_DISCOVERY.html) |
 | Get complete reference | [Adding New Exercises](guides/ADDING_NEW_EXERCISES.html) |
 | See a real example | [BCM Welcome Meals](examples/BCM_WELCOME_MEALS.html) |
-| Understand validation coverage | [Validation Coverage](VALIDATION_COVERAGE.html) |
+| Understand validation coverage | [Validation Coverage](guides/VALIDATION_COVERAGE.html) |
 | Work with metadata | [Adding Metadata](guides/ADDING_METADATA.html) |
 | Troubleshoot issues | [Troubleshooting Guide](guides/ADDING_NEW_EXERCISES.md#troubleshooting) |
 
